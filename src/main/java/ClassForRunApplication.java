@@ -1,35 +1,10 @@
-import model.Currency;
-import utils.ConnectionManager;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import TipoRestApi.GetCurrency;
 
 public class ClassForRunApplication {
-    public static void main(String[] args)  {
-        try (
-
-                Connection connection = ConnectionManager.open();
-                Statement statement = connection.createStatement()
-        )
-        {
-            ResultSet rs = statement.executeQuery("select * from Currencies");
-            while(rs.next())
-            {
-
-                Currency currency = new Currency(
-                        rs.getInt("ID"),
-                        rs.getString("FullName"),
-                        rs.getString("code"),
-                        rs.getString("Sign")
-                );
-                System.out.println(currency);
-            }
-        }
-        catch(SQLException e)
-        {
-            e.printStackTrace(System.err);
-        }
+    public static void main(String[] args) {
+        System.out.println(GetCurrency.GETID(2));
+        System.out.println(GetCurrency.GETCODE("USD"));
+        System.out.println(GetCurrency.GETFULLNAME("Russian Ruble"));
+        System.out.println(GetCurrency.GETSIGN("₸"));
     }
 }
