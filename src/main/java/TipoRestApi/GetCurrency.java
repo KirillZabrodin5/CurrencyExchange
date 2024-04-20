@@ -1,5 +1,5 @@
 package TipoRestApi;
-
+//удалить надо
 import model.Currency;
 import utils.ConnectionManager;
 
@@ -11,9 +11,9 @@ public final class GetCurrency {
     public static Currency GETID(Integer parameterForFind)  {
         Currency curr = null;
         String sql = """
-                SELECT ID, code, FullName, Sign
+                SELECT id, code, full_name, sign
                 FROM Currencies
-                WHERE ID = ?
+                WHERE id = ?
 """;
         try(
                 Connection connection = ConnectionManager.open();
@@ -23,10 +23,10 @@ public final class GetCurrency {
             rs = preparedStatement.executeQuery();
 
             curr = new Currency(
-                    rs.getInt("ID"),
+                    rs.getInt("id"),
                     rs.getString("code"),
-                    rs.getString("FullName"),
-                    rs.getString("Sign")
+                    rs.getString("full_name"),
+                    rs.getString("sign")
             );
 
         } catch (SQLException sqlException) {
