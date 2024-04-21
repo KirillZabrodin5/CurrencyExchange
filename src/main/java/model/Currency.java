@@ -2,8 +2,8 @@ package model;
 
 public class Currency {
     private int id;
-    private String fullName;
     private String code;
+    private String fullName;
     private String sign;
 
     public Currency(){
@@ -11,8 +11,8 @@ public class Currency {
 
     public Currency(int id, String fullName, String code, String sign) {
         this.id = id;
-        this.fullName = fullName;
         this.code = code;
+        this.fullName = fullName;
         this.sign = sign;
     }
 
@@ -52,8 +52,8 @@ public class Currency {
     public String toString() {
         return "Currency{" +
                 "id=" + id +
-                ", fullName='" + fullName + '\'' +
-                ", code=" + code +
+                ", code='" + code + '\'' +
+                ", full_name=" + fullName +
                 ", sign='" + sign + '\'' +
                 '}';
     }

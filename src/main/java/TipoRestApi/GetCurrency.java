@@ -8,18 +8,16 @@ import java.sql.*;
 public final class GetCurrency {
     static ResultSet rs = null;
 
-    public static Currency GETID(Integer parameterForFind)  {
+    public static Currency GETTABLE()  {
         Currency curr = null;
         String sql = """
                 SELECT id, code, full_name, sign
                 FROM Currencies
-                WHERE id = ?
 """;
         try(
                 Connection connection = ConnectionManager.open();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
-            preparedStatement.setInt(1, parameterForFind);
             rs = preparedStatement.executeQuery();
 
             curr = new Currency(
