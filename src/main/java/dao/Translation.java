@@ -1,30 +1,22 @@
 package dao;
 
 import utils.ConnectionManager;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 /**
- * прямой перевод из А в Б
+ * Перевод из А в Б
+ * Если получили USD, RUB от юзера, то
+ * метод translate вернет 63.75, так как 1 доллар = 63.75 рублей
  */
 
-public class DirectTranslation {
-    private String startCodeCurrency;
-    private String endCodeCurrency;
-
-    public DirectTranslation(String startCodeCurrency, String endCodeCurrency) {
-        this.startCodeCurrency = startCodeCurrency;
-        this.endCodeCurrency = endCodeCurrency;;
-    }
-
-    public double translate() {
-        //делаем запрос к ExchangeRates и возвращаем rate
-
-        int idStartCurrency = RequestToDbUtil.answerFromDB(startCodeCurrency).getId();
-        int idEndCurrency = RequestToDbUtil.answerFromDB(endCodeCurrency).getId();
-
+public class Translation {
+    /**
+    * Делаем запрос к таблице ExchangeRates и возвращаем rate
+     */
+    public static double translate(int idStartCurrency, int idEndCurrency) {
         String sql = """
                 SELECT rate
                 FROM ExchangeRates
@@ -41,12 +33,10 @@ public class DirectTranslation {
             statement.setDouble(2, idEndCurrency);
             ResultSet rs = statement.executeQuery();
             rate = rs.getDouble("rate");
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
         return rate;
     }
-
-
 }

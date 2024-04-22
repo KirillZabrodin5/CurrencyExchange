@@ -1,10 +1,8 @@
-import dao.DirectTranslation;
-import dao.RequestToDbUtil;
+import dao.ReceivedRate;
 
 public class RunnerApplication {
     public static void main(String[] args)  {
-        DirectTranslation directTranslation = new DirectTranslation("RUB", "USD");
-        System.out.println(directTranslation.translate());
-        RequestToDbUtil.answerFromDB("USD");
+        ReceivedRate receivedRate = new ReceivedRate("RUB", "EUR");
+        System.out.println(receivedRate.translateBuild());
     }
 }

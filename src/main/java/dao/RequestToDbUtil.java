@@ -8,12 +8,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * Класс для получения валюты по заданному коду
+*/
 public final class RequestToDbUtil {
-    public static Currency answerFromDB(String code) {
+    public static Currency findCurrencyByCode(String code) {
         String sql = """
                     SELECT *
                     FROM Currencies 
                     WHERE code = ?""";
+
         Currency curr = null;
 
         try (
