@@ -11,7 +11,7 @@ import java.sql.SQLException;
 /**
  * Класс для получения валюты по заданному коду
 */
-public final class RequestToDbUtil {
+public final class RequestDbUtil {
     public static Currency findCurrencyByCode(String code) {
         String sql = """
                     SELECT *

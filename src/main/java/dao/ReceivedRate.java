@@ -18,8 +18,8 @@ public final class ReceivedRate {
     private int idEndCurrency;
 
     public ReceivedRate(String startCodeCurrency, String endCodeCurrency) {
-        idStartCurrency = RequestToDbUtil.findCurrencyByCode(startCodeCurrency).getId();
-        idEndCurrency = RequestToDbUtil.findCurrencyByCode(endCodeCurrency).getId();
+        idStartCurrency = RequestDbUtil.findCurrencyByCode(startCodeCurrency).getId();
+        idEndCurrency = RequestDbUtil.findCurrencyByCode(endCodeCurrency).getId();
     }
 
     public double translateBuild() {
@@ -84,7 +84,7 @@ public final class ReceivedRate {
     }
 
     private double translationWithIntermediateMeaning() {
-        Currency currency = RequestToDbUtil.findCurrencyByCode("USD");
+        Currency currency = RequestDbUtil.findCurrencyByCode("USD");
         int idUSD = currency.getId();
 
         double USDtoStart = Translation

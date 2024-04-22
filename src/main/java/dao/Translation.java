@@ -33,7 +33,6 @@ public class Translation {
             statement.setDouble(2, idEndCurrency);
             ResultSet rs = statement.executeQuery();
             rate = rs.getDouble("rate");
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
