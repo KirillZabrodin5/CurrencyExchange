@@ -29,6 +29,7 @@ public class FirstServlet extends HttpServlet {
         resp.setContentType("text/plain");
         resp.setCharacterEncoding("UTF-8");
 
+        //app.json больше нет в ресурсах, если понадобится, то создать заново
         var stream = FirstServlet.class.getResourceAsStream("/app.json");
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
