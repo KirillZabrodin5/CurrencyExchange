@@ -28,9 +28,12 @@ public final class ReceivedRate {
     private double buildRoad() {
         double answerAB = -1;
 
-        if (idStartCurrency == 0 || idEndCurrency == 0 || idStartCurrency == idEndCurrency) {
+        if (idStartCurrency == 0 || idEndCurrency == 0) {
             System.out.println("Вы явно что-то делаете не так");
             return answerAB;
+        }
+        if (idStartCurrency == idEndCurrency) {
+
         }
 
         String sql = """

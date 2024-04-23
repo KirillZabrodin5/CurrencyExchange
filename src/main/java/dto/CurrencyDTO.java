@@ -14,7 +14,7 @@ import java.util.Map;
  * Класс для преобразования SQL запроса в Json
  * */
 public class CurrencyDTO {
-    public void method() {
+    public void getJson() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         try {
@@ -22,14 +22,14 @@ public class CurrencyDTO {
             Currency baseCurrency = RequestDbUtil.findCurrencyByCode("USD");
             Currency targetCurrency = RequestDbUtil.findCurrencyByCode("RUB");
 
-            Map<String, Object> json = new LinkedHashMap<>();
-            json.put("baseCurrency", baseCurrency);
-            json.put("targetCurrency", targetCurrency);
-            json.put("rate", 1.45);
-            json.put("amount", 10.00);
-            json.put("convertedAmount", 14.50);
+//            Map<String, Object> json = new LinkedHashMap<>();
+//            json.put("baseCurrency", baseCurrency);
+//            json.put("targetCurrency", targetCurrency);
+//            json.put("rate", 1.45);
+//            json.put("amount", 10.00);
+//            json.put("convertedAmount", 14.50);
 
-            mapper.writeValue(file, json);
+            mapper.writeValue(file, baseCurrency);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

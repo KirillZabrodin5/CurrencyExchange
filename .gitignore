@@ -9,6 +9,4 @@ target/
 *.iml
 *.ipr
 
-DB.sqlite
-sample.db
 resources/

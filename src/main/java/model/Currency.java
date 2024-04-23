@@ -1,18 +1,24 @@
 package model;
 
 public class Currency {
-    private int id;
-    private String code;
-    private String fullName;
-    private String sign;
+    private int id = 0;
+    private String code = "";
+    private String name = "";
+    private String sign = "";
 
     public Currency(){
     }
 
-    public Currency(int id, String fullName, String code, String sign) {
+    public Currency(String code, String name, String sign) {
+        this.code = code;
+        this.name = name;
+        this.sign = sign;
+    }
+
+    public Currency(int id, String code, String name, String sign) {
         this.id = id;
         this.code = code;
-        this.fullName = fullName;
+        this.name = name;
         this.sign = sign;
     }
 
@@ -24,12 +30,12 @@ public class Currency {
         this.id = id;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getName() {
+        return name;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getCode() {
@@ -53,7 +59,7 @@ public class Currency {
         return "Currency{" +
                 "id=" + id +
                 ", code='" + code + '\'' +
-                ", full_name=" + fullName +
+                ", name='" + name + '\'' +
                 ", sign='" + sign + '\'' +
                 '}';
     }
