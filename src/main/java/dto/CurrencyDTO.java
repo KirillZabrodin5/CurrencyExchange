@@ -2,13 +2,13 @@ package dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import dao.ReceivedRate;
 import dao.RequestDbUtil;
 import model.Currency;
+import model.ExchangeRates;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Класс для преобразования SQL запроса в Json
@@ -19,8 +19,10 @@ public class CurrencyDTO {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         try {
             File file = new File("request.json");
-            Currency baseCurrency = RequestDbUtil.findCurrencyByCode("USD");
-            Currency targetCurrency = RequestDbUtil.findCurrencyByCode("RUB");
+            RequestDbUtil dbUtil = new RequestDbUtil();
+
+            Currency baseCurrency = RequestDbUtil.getCurrencyByCode("USD");
+            Currency targetCurrency = RequestDbUtil.getCurrencyByCode("RUB");
 
 //            Map<String, Object> json = new LinkedHashMap<>();
 //            json.put("baseCurrency", baseCurrency);
@@ -29,7 +31,8 @@ public class CurrencyDTO {
 //            json.put("amount", 10.00);
 //            json.put("convertedAmount", 14.50);
 
-            mapper.writeValue(file, baseCurrency);
+            mapper.writeValue(file, dbUtil
+                    .getExchangeRateByCode("USD", "RUB"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

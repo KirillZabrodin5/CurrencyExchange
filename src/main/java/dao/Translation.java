@@ -16,7 +16,7 @@ public class Translation {
     /**
     * Делаем запрос к таблице ExchangeRates и возвращаем rate
      */
-    public static double translate(int idStartCurrency, int idEndCurrency) {
+    public static double getRate(int idStartCurrency, int idEndCurrency) {
         String sql = """
                 SELECT rate
                 FROM ExchangeRates

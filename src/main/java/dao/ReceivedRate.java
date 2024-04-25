@@ -9,31 +9,33 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Класс для определения, существует ли прямой курс перевода,
+ * Класс для определения, существует ли прямой маршрут перевода,
  * обратный курс или такого курса нет вообще
- * и вызывает соответствующую реализацию
+ * и вызывает соответствующую реализацию.
+ * Основой метод класса - translate, с помощью него получаем
+ * определяем маршрут перевода и возвращаем rate
  */
 public final class ReceivedRate {
     private int idStartCurrency;
     private int idEndCurrency;
 
     public ReceivedRate(String startCodeCurrency, String endCodeCurrency) {
-        idStartCurrency = RequestDbUtil.findCurrencyByCode(startCodeCurrency).getId();
-        idEndCurrency = RequestDbUtil.findCurrencyByCode(endCodeCurrency).getId();
+        idStartCurrency = RequestDbUtil.getCurrencyByCode(startCodeCurrency).getId();
+        idEndCurrency = RequestDbUtil.getCurrencyByCode(endCodeCurrency).getId();
     }
 
-    public double translateBuild() {
-        return buildRoad();
-    }
-    private double buildRoad() {
-        double answerAB = -1;
+    public double translate() {
+        double answer = -1;
 
         if (idStartCurrency == 0 || idEndCurrency == 0) {
-            System.out.println("Вы явно что-то делаете не так");
-            return answerAB;
+            System.out.println("Некорректный ввод, одной из (двух) валют не существует. " +
+                    "Посмотрите список существующих валют и " +
+                    "повторите еще раз.");
+            return answer;
         }
         if (idStartCurrency == idEndCurrency) {
-
+            return 1;
+            //здесь надо как-то так описать, чтобы rate = 1
         }
 
         String sql = """
@@ -55,7 +57,7 @@ public final class ReceivedRate {
             int result = rs.getInt(1);
             if (result == 1) {
                 //если есть прямой перевод, то работаем
-                answerAB = directTranslate();
+                answer = directTranslate();
             } else {
                 //если прямого перевода нет, то 2 случая:
                 //есть перевод BA и есть перевод с промежуточной валютой USD
@@ -64,37 +66,36 @@ public final class ReceivedRate {
                 rs = statement.executeQuery();
                 if (rs.getInt(1) == 1) {
                     //BA
-                    answerAB = indirectTranslate();
+                    answer = indirectTranslate();
                 } else {
                     //перевод с промежуточной валютой USD
-                    answerAB = translationWithIntermediateMeaning();
+                    answer = translationWithIntermediateMeaning();
                 }
             }
         } catch(SQLException e) {
             e.printStackTrace();
         }
 
-        return answerAB;
+        return answer;
     }
 
     private double directTranslate() {
-        return Translation.translate(idStartCurrency, idEndCurrency);
+        return Translation.getRate(idStartCurrency, idEndCurrency);
     }
 
     private double indirectTranslate() {
-        return 1 / Translation.translate(idEndCurrency,
-                idStartCurrency);
+        return 1 / Translation.getRate(idEndCurrency, idStartCurrency);
     }
 
     private double translationWithIntermediateMeaning() {
-        Currency currency = RequestDbUtil.findCurrencyByCode("USD");
+        Currency currency = RequestDbUtil.getCurrencyByCode("USD");
         int idUSD = currency.getId();
 
         double USDtoStart = Translation
-                .translate(idUSD, idStartCurrency);
+                .getRate(idUSD, idStartCurrency);
 
         double USDtoEnd = Translation
-                .translate(idUSD, idEndCurrency);
+                .getRate(idUSD, idEndCurrency);
         return USDtoEnd / USDtoStart;
     }
 }
