@@ -1,4 +1,4 @@
-import dao.RequestDbUtil;
+import dao.RequestDb;
 import dto.CurrencyDTO;
 
 public class RunnerApplication {
@@ -6,7 +6,7 @@ public class RunnerApplication {
         CurrencyDTO currencyDTO = new CurrencyDTO();
         currencyDTO.getJson();
 
-        RequestDbUtil dbUtil = new RequestDbUtil();
+        RequestDb dbUtil = new RequestDb();
         dbUtil.updateExchangeRates("USD", "RUB", 34);
     }
 }

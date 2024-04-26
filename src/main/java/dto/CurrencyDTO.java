@@ -2,10 +2,8 @@ package dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import dao.ReceivedRate;
-import dao.RequestDbUtil;
+import dao.RequestDb;
 import model.Currency;
-import model.ExchangeRates;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +19,7 @@ public class CurrencyDTO {
         try {
             File file = new File("resources/jsonCur.json");
 
-            List<Currency> currencies = RequestDbUtil.getAllCurrencies();
+            List<Currency> currencies = RequestDb.getAllCurrencies();
 
             mapper.writeValue(file, currencies);
         } catch (IOException e) {

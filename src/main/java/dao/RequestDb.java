@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public final class RequestDbUtil {
+public final class RequestDb {
     /**
      * Метод для получения валюты по заданному коду.
      * Example: GET /currency/EUR
@@ -103,7 +103,7 @@ public final class RequestDbUtil {
      * Как это организовать я пока не понимаю
      * Этот метод предназначен для запроса: GET /exchangeRates
      */
-    public List<ExchangeRates> getAllExchangeRates() {
+    public static List<ExchangeRates> getAllExchangeRates() {
         //придумать, как можно вместо c.code получать всю информацию о валюте, а
         //не только код
         String sql = """
@@ -134,16 +134,16 @@ public final class RequestDbUtil {
      * код стартовой валюты, код конечной валюты, ставка.
      * Использоваться будет для запроса: GET /exchangeRate/USDRUB
      */
-    public ExchangeRates getExchangeRateByCode(String baseCode, String targetCode) {
+    public static ExchangeRates getExchangeRateByCode(String baseCode, String targetCode) {
         int idExRate = getIdExRate(baseCode, targetCode);
         ReceivedRate rate = new ReceivedRate(
-                RequestDbUtil.getCurrencyByCode(baseCode).getCode(),
-                RequestDbUtil.getCurrencyByCode(targetCode).getCode()
+                RequestDb.getCurrencyByCode(baseCode).getCode(),
+                RequestDb.getCurrencyByCode(targetCode).getCode()
         );
 
         ExchangeRates rates = new ExchangeRates(idExRate,
-                RequestDbUtil.getCurrencyByCode(baseCode),
-                RequestDbUtil.getCurrencyByCode(targetCode),
+                RequestDb.getCurrencyByCode(baseCode),
+                RequestDb.getCurrencyByCode(targetCode),
                 rate.translate()
         );
 
@@ -182,7 +182,7 @@ public final class RequestDbUtil {
      * эти данные в таблицу ExchangeRates.
      * Метод написан под запрос: POST /exchangeRates
      * */
-    public void addExchangeRates(String codeStartCurrency, String codeEndCurrency,
+    public static void addExchangeRates(String codeStartCurrency, String codeEndCurrency,
                                  int rate) {
         String sql = """
                     INSERT INTO ExchangeRates(base_currency_id, 
@@ -212,7 +212,7 @@ public final class RequestDbUtil {
      * эти данные в таблице ExchangeRates.
      * Метод написан под запрос: PATCH /exchangeRate/USDRUB
      * */
-    public void updateExchangeRates(String codeStartCurrency, String codeEndCurrency,
+    public static void updateExchangeRates(String codeStartCurrency, String codeEndCurrency,
                                  int rate) {
         String sql = """
                 UPDATE ExchangeRates

@@ -29,8 +29,9 @@ public class CurrenciesServlet extends HttpServlet {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                response.setContentType("text/html");
+                response.setContentType("application/json");
                 response.getWriter().write(line);
+                response.setStatus(400);
             }
         } catch (IOException e) {
             e.printStackTrace();
