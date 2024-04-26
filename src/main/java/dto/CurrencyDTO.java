@@ -9,6 +9,7 @@ import model.ExchangeRates;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Класс для преобразования SQL запроса в Json
@@ -18,21 +19,11 @@ public class CurrencyDTO {
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         try {
-            File file = new File("request.json");
-            RequestDbUtil dbUtil = new RequestDbUtil();
+            File file = new File("resources/jsonCur.json");
 
-            Currency baseCurrency = RequestDbUtil.getCurrencyByCode("USD");
-            Currency targetCurrency = RequestDbUtil.getCurrencyByCode("RUB");
+            List<Currency> currencies = RequestDbUtil.getAllCurrencies();
 
-//            Map<String, Object> json = new LinkedHashMap<>();
-//            json.put("baseCurrency", baseCurrency);
-//            json.put("targetCurrency", targetCurrency);
-//            json.put("rate", 1.45);
-//            json.put("amount", 10.00);
-//            json.put("convertedAmount", 14.50);
-
-            mapper.writeValue(file, dbUtil
-                    .getExchangeRateByCode("USD", "RUB"));
+            mapper.writeValue(file, currencies);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

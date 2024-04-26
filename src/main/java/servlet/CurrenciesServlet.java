@@ -11,38 +11,31 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-
-@WebServlet("/hello_world")
-public class FirstServlet extends HttpServlet {
+@WebServlet("/currencies")
+public class CurrenciesServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-//        resp.setContentType("text/html");
-//        PrintWriter out = resp.getWriter();
-//        out.println("<h1>Hello, World!</h1>");
-//        out.close();
-        resp.setContentType("text/plain");
-        resp.setCharacterEncoding("UTF-8");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException {
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
 
-        //app.json больше нет в ресурсах, если понадобится, то создать заново
-        var stream = FirstServlet.class.getResourceAsStream("/jsonCur.json");
+        var stream = CurrenciesServlet.class.getResourceAsStream("/jsonCur.json");
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                resp.setContentType("text/html");
-                resp.getWriter().write("\t" + line + "\n");
+                response.setContentType("text/html");
+                response.getWriter().write(line);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
     @Override
     public void destroy() {
         super.destroy();

@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public final class RequestDbUtil {
     /**
      * Метод для получения валюты по заданному коду.
@@ -176,5 +177,70 @@ public final class RequestDbUtil {
         return idExRate;
     }
 
+    /**
+     * Метод, который получает на вход коды валют и ставку, а потом добавляет
+     * эти данные в таблицу ExchangeRates.
+     * Метод написан под запрос: POST /exchangeRates
+     * */
+    public void addExchangeRates(String codeStartCurrency, String codeEndCurrency,
+                                 int rate) {
+        String sql = """
+                    INSERT INTO ExchangeRates(base_currency_id, 
+                    target_currency_id, rate)
+                    VALUES (?, ?, ?)""";
 
+        try(
+                Connection connection = ConnectionManager.open();
+                PreparedStatement statement = connection.prepareStatement(sql);
+        ) {
+            int idStart = getCurrencyByCode(codeStartCurrency).getId();
+            int idEnd = getCurrencyByCode(codeEndCurrency).getId();
+            if ((idStart == idEnd) || (idStart == 0 || idEnd == 0)) {
+                throw new RuntimeException("Таких валют не существует");
+            }
+            statement.setInt(1, idStart);
+            statement.setInt(2, idEnd);
+            statement.setInt(3, rate);
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Не получилось добавить новый обменный курс");
+        }
+    }
+
+    /**
+     * Метод, который получает на вход коды валют и ставку, а потом обновляет
+     * эти данные в таблице ExchangeRates.
+     * Метод написан под запрос: PATCH /exchangeRate/USDRUB
+     * */
+    public void updateExchangeRates(String codeStartCurrency, String codeEndCurrency,
+                                 int rate) {
+        String sql = """
+                UPDATE ExchangeRates
+                SET rate = ?
+                WHERE base_currency_id = ? AND
+                      target_currency_id = ?""";
+        String sqlHelper = """
+                    SELECT count(*)
+                    FROM ExchangeRates
+                    WHERE base_currency_id = 1 AND
+                          target_currency_id = 3""";
+
+        try(
+                Connection connection = ConnectionManager.open();
+                PreparedStatement statement1 = connection.prepareStatement(sqlHelper);
+                PreparedStatement statement2 = connection.prepareStatement(sql);
+        ) {
+            int idStart = getCurrencyByCode(codeStartCurrency).getId();
+            int idEnd = getCurrencyByCode(codeEndCurrency).getId();
+            if (statement1.executeQuery().getInt(1) == 1) {
+                statement2.setInt(1, rate);
+                statement2.setInt(2, idStart);
+                statement2.setInt(3, idEnd);
+                statement2.executeUpdate();
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Не получилось обновить обменный курс");
+        }
+    }
 }
