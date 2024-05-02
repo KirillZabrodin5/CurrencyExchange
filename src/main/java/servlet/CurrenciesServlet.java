@@ -19,9 +19,8 @@ public class CurrenciesServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException {
-        response.setContentType("text/plain");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+//        response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
 
         var stream = CurrenciesServlet.class.getResourceAsStream("/jsonCur.json");
@@ -31,7 +30,7 @@ public class CurrenciesServlet extends HttpServlet {
             while ((line = reader.readLine()) != null) {
                 response.setContentType("application/json");
                 response.getWriter().write(line);
-                response.setStatus(400);
+                response.setStatus(200);
             }
         } catch (IOException e) {
             e.printStackTrace();

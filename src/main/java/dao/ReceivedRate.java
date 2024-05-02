@@ -12,16 +12,17 @@ import java.sql.SQLException;
  * Класс для определения, существует ли прямой маршрут перевода,
  * обратный курс или такого курса нет вообще
  * и вызывает соответствующую реализацию.
- * Основой метод класса - translate, с помощью него получаем
+ * Основой метод класса - translate, с помощью него
  * определяем маршрут перевода и возвращаем rate
  */
 public final class ReceivedRate {
-    private int idStartCurrency;
-    private int idEndCurrency;
+    private final int idStartCurrency;
+    private final int idEndCurrency;
 
     public ReceivedRate(String startCodeCurrency, String endCodeCurrency) {
-        idStartCurrency = RequestDb.getCurrencyByCode(startCodeCurrency).getId();
-        idEndCurrency = RequestDb.getCurrencyByCode(endCodeCurrency).getId();
+        JdbcCurrencyDao dao = new JdbcCurrencyDao();
+        idStartCurrency = dao.getCurrencyByCode(startCodeCurrency).getId();
+        idEndCurrency = dao.getCurrencyByCode(endCodeCurrency).getId();
     }
 
     public double translate() {
@@ -88,7 +89,8 @@ public final class ReceivedRate {
     }
 
     private double translationWithIntermediateMeaning() {
-        Currency currency = RequestDb.getCurrencyByCode("USD");
+        JdbcCurrencyDao dao = new JdbcCurrencyDao();
+        Currency currency = dao.getCurrencyByCode("USD");
         int idUSD = currency.getId();
 
         double USDtoStart = Translation

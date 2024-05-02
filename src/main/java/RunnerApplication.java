@@ -1,12 +1,12 @@
-import dao.RequestDb;
-import dto.CurrencyDTO;
+import dao.JdbcCurrencyDao;
+import model.Currency;
 
 public class RunnerApplication {
     public static void main(String[] args)  {
-        CurrencyDTO currencyDTO = new CurrencyDTO();
-        currencyDTO.getJson();
+        JdbcCurrencyDao dao = new JdbcCurrencyDao();
+        Currency currency = dao.getCurrencyByCode("USD");
+        System.out.println(currency);
 
-        RequestDb dbUtil = new RequestDb();
-        dbUtil.updateExchangeRates("USD", "RUB", 34);
+
     }
 }

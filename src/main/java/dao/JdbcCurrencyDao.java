@@ -12,42 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public final class RequestDb {
-    /**
-     * Метод для получения валюты по заданному коду.
-     * Example: GET /currency/EUR
-     */
-    public static Currency getCurrencyByCode(String code) {
-        String sql = """
-                SELECT *
-                FROM Currencies 
-                WHERE code = ?""";
-
-        Currency curr = new Currency();
-
-        try (
-                Connection con = ConnectionManager.open();
-                PreparedStatement stmt = con.prepareStatement(sql);
-        ) {
-            stmt.setString(1, code);
-            ResultSet rs = stmt.executeQuery();
-
-            curr = new Currency(rs.getInt("id"),
-                    rs.getString("code"),
-                    rs.getString("full_name"),
-                    rs.getString("sign"));
-        } catch (SQLException e) {
-            e.printStackTrace(System.err);
-        }
-        return curr;
-    }
+public class JdbcCurrencyDao {
 
     /**
      * Метод для получения всех валют из таблицы Currencies,
      * для GET /currencies
      */
-    public static List<Currency> getAllCurrencies() {
-        String sql = """
+    public List<Currency> getAllCurrencies() {
+        final String sql = """
                 SELECT *
                 FROM Currencies""";
         List<Currency> currencies = new ArrayList<>();
@@ -71,14 +43,45 @@ public final class RequestDb {
     }
 
     /**
+     * Метод для получения валюты по заданному коду.
+     * Example: GET /currency/EUR
+     */
+    public Currency getCurrencyByCode(String code) {
+        final String sql = """
+                SELECT *
+                FROM Currencies 
+                WHERE code = ?""";
+
+        Currency curr = new Currency();
+
+        try (
+                Connection con = ConnectionManager.open();
+                PreparedStatement stmt = con.prepareStatement(sql);
+        ) {
+            stmt.setString(1, code);
+            ResultSet rs = stmt.executeQuery();
+
+            curr = new Currency(rs.getInt("id"),
+                    rs.getString("code"),
+                    rs.getString("full_name"),
+                    rs.getString("sign"));
+        } catch (SQLException e) {
+            e.printStackTrace(System.err);
+        }
+        return curr;
+    }
+
+
+
+    /**
      * Метод для добавления в таблицу новой валюты,
      * для POST /currencies (code, name and sign передаются в теле запроса)
      */
-    public static void addCurrency(Currency curr) {
+    public void addCurrency(Currency curr) {
         if (getCurrencyByCode(curr.getCode()).getId() != 0) {
             System.out.println("Такая валюта уже существует");
         } else {
-            String sql = """
+            final String sql = """
                     INSERT INTO Currencies(code, full_name, sign)
                     VALUES (?, ?, ?)""";
 
@@ -103,10 +106,10 @@ public final class RequestDb {
      * Как это организовать я пока не понимаю
      * Этот метод предназначен для запроса: GET /exchangeRates
      */
-    public static List<ExchangeRates> getAllExchangeRates() {
+    public List<ExchangeRates> getAllExchangeRates() {
         //придумать, как можно вместо c.code получать всю информацию о валюте, а
         //не только код
-        String sql = """
+        final String sql = """
                 SELECT ex.id,
                        (SELECT c.code
                         FROM Currencies as c
@@ -134,16 +137,16 @@ public final class RequestDb {
      * код стартовой валюты, код конечной валюты, ставка.
      * Использоваться будет для запроса: GET /exchangeRate/USDRUB
      */
-    public static ExchangeRates getExchangeRateByCode(String baseCode, String targetCode) {
+    public ExchangeRates getExchangeRateByCode(String baseCode, String targetCode) {
         int idExRate = getIdExRate(baseCode, targetCode);
         ReceivedRate rate = new ReceivedRate(
-                RequestDb.getCurrencyByCode(baseCode).getCode(),
-                RequestDb.getCurrencyByCode(targetCode).getCode()
+                getCurrencyByCode(baseCode).getCode(),
+                getCurrencyByCode(targetCode).getCode()
         );
 
         ExchangeRates rates = new ExchangeRates(idExRate,
-                RequestDb.getCurrencyByCode(baseCode),
-                RequestDb.getCurrencyByCode(targetCode),
+                getCurrencyByCode(baseCode),
+                getCurrencyByCode(targetCode),
                 rate.translate()
         );
 
@@ -154,10 +157,10 @@ public final class RequestDb {
     /**
      * Метод для получения id пары обменного курса из одной валюты в другую
      */
-    private static int getIdExRate(String baseCode, String targetCode) {
+    private int getIdExRate(String baseCode, String targetCode) {
         int idExRate;
 
-        String sql = """
+        final String sql = """
                 SELECT id
                 FROM ExchangeRates
                 WHERE base_currency_id = ? and
@@ -182,9 +185,9 @@ public final class RequestDb {
      * эти данные в таблицу ExchangeRates.
      * Метод написан под запрос: POST /exchangeRates
      * */
-    public static void addExchangeRates(String codeStartCurrency, String codeEndCurrency,
+    public void addExchangeRates(String codeStartCurrency, String codeEndCurrency,
                                  int rate) {
-        String sql = """
+        final String sql = """
                     INSERT INTO ExchangeRates(base_currency_id, 
                     target_currency_id, rate)
                     VALUES (?, ?, ?)""";
@@ -212,14 +215,14 @@ public final class RequestDb {
      * эти данные в таблице ExchangeRates.
      * Метод написан под запрос: PATCH /exchangeRate/USDRUB
      * */
-    public static void updateExchangeRates(String codeStartCurrency, String codeEndCurrency,
+    public void updateExchangeRates(String codeStartCurrency, String codeEndCurrency,
                                  int rate) {
-        String sql = """
+        final String sql = """
                 UPDATE ExchangeRates
                 SET rate = ?
                 WHERE base_currency_id = ? AND
                       target_currency_id = ?""";
-        String sqlHelper = """
+        final String sqlHelper = """
                     SELECT count(*)
                     FROM ExchangeRates
                     WHERE base_currency_id = 1 AND
