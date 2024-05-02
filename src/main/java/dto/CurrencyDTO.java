@@ -19,7 +19,7 @@ public class CurrencyDTO {
         try {
             File file = new File("resources/jsonCur.json");
             JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
-            List<Currency> currencies = jdbcCurrencyDao.getAllCurrencies();
+            List<Currency> currencies = jdbcCurrencyDao.findAll();
 
             mapper.writeValue(file, currencies);
         } catch (IOException e) {
@@ -33,7 +33,7 @@ public class CurrencyDTO {
         try {
             File file = new File("resources/jsonCurrency.json");
             JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
-            Currency currency = jdbcCurrencyDao.getCurrencyByCode(code);
+            Currency currency = jdbcCurrencyDao.findByCode(code);
 
             mapper.writeValue(file, currency);
         } catch (IOException e) {

@@ -18,11 +18,19 @@ import java.sql.SQLException;
 public final class ReceivedRate {
     private final int idStartCurrency;
     private final int idEndCurrency;
+    private final JdbcExchangeRateDao jdbcExchangeRateDao = new JdbcExchangeRateDao();
 
     public ReceivedRate(String startCodeCurrency, String endCodeCurrency) {
         JdbcCurrencyDao dao = new JdbcCurrencyDao();
-        idStartCurrency = dao.getCurrencyByCode(startCodeCurrency).getId();
-        idEndCurrency = dao.getCurrencyByCode(endCodeCurrency).getId();
+        idStartCurrency = dao
+                .findByCode(startCodeCurrency)
+                .orElse(null)
+                .getId();
+        idEndCurrency = dao
+                .findByCode(endCodeCurrency)
+                .orElse(null)
+                .getId();
+
     }
 
     public double translate() {
@@ -81,22 +89,24 @@ public final class ReceivedRate {
     }
 
     private double directTranslate() {
-        return Translation.getRate(idStartCurrency, idEndCurrency);
+
+        return jdbcExchangeRateDao.getRate(idStartCurrency, idEndCurrency);
     }
 
     private double indirectTranslate() {
-        return 1 / Translation.getRate(idEndCurrency, idStartCurrency);
+
+        return 1 / jdbcExchangeRateDao.getRate(idEndCurrency, idStartCurrency);
     }
 
     private double translationWithIntermediateMeaning() {
         JdbcCurrencyDao dao = new JdbcCurrencyDao();
-        Currency currency = dao.getCurrencyByCode("USD");
+        Currency currency = dao.findByCode("USD").get();
         int idUSD = currency.getId();
 
-        double USDtoStart = Translation
+        double USDtoStart = jdbcExchangeRateDao
                 .getRate(idUSD, idStartCurrency);
 
-        double USDtoEnd = Translation
+        double USDtoEnd = jdbcExchangeRateDao
                 .getRate(idUSD, idEndCurrency);
         return USDtoEnd / USDtoStart;
     }
