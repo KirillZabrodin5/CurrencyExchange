@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-//тут не хватает из интерфейса реализованных методов update and delete
+//этот класс норм написан, можно так оставить
 
-public class JdbcCurrencyDao implements CrudDao<Currency, String> {
+public class JdbcCurrencyDao implements CurrencyDao {
 
     /**
      * Метод для получения всех валют из таблицы Currencies,
@@ -85,7 +85,7 @@ public class JdbcCurrencyDao implements CrudDao<Currency, String> {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public void save(Currency curr) {
+    public Optional<Currency> save(Currency curr) {
 
         final String sql = """
                 INSERT INTO Currencies(code, full_name, sign)
@@ -98,13 +98,17 @@ public class JdbcCurrencyDao implements CrudDao<Currency, String> {
             statement.setString(1, curr.getCode());
             statement.setString(2, curr.getName());
             statement.setString(3, curr.getSign());
-            statement.execute();
+            ResultSet rs = statement.executeQuery();
 
+            return Optional.of(getCurrencyFromResultSet(rs));
         } catch (SQLException ex) {
             //TODO
         }
+        return Optional.empty();
     }
-
+    /**
+     * Метод для ExchangeRate
+     * */
     @Override
     public Optional<Currency> findById(int id) {
         final String sql = """
