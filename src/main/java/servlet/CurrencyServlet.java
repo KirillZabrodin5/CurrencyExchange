@@ -1,6 +1,6 @@
 package servlet;
 
-import dto.CurrencyDTO;
+import dto.CurrencyDto;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -30,8 +30,8 @@ public class CurrencyServlet extends HttpServlet {
         if (path.startsWith("/") && path.length() < 5) {
             String currencyCode = path.substring(1, path.length());
 
-            CurrencyDTO currencyDTO  = new CurrencyDTO();
-            currencyDTO.getJsonCurrency(currencyCode);
+            CurrencyDto currencyDTO  = new CurrencyDto();
+            //currencyDTO.getJsonCurrency(currencyCode);
 
             resp.setCharacterEncoding("UTF-8");
             var stream = CurrenciesServlet.class.getResourceAsStream("jsonCurrency.json");

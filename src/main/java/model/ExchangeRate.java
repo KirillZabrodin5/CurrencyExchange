@@ -1,22 +1,20 @@
 package model;
 
-public class ExchangeRate implements java.io.Serializable {
-    private int id;
+public class ExchangeRate {
+    private Long id;
     private Currency baseCurrency;
     private Currency targetCurrency;
     private double rate;
 
     public ExchangeRate() {}
 
-    public ExchangeRate(Currency baseCurrency,
-                        Currency targetCurrency, double rate) {
-
+    public ExchangeRate(Currency baseCurrency, Currency targetCurrency, double rate) {
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
         this.rate = rate;
     }
 
-    public ExchangeRate(int id, Currency baseCurrency,
+    public ExchangeRate(Long id, Currency baseCurrency,
                         Currency targetCurrency, double rate) {
         this.id = id;
         this.baseCurrency = baseCurrency;
@@ -24,11 +22,11 @@ public class ExchangeRate implements java.io.Serializable {
         this.rate = rate;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

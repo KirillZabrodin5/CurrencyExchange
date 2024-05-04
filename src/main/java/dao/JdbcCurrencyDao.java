@@ -1,5 +1,6 @@
 package dao;
 
+import Exceptions.NotFoundException;
 import model.Currency;
 import utils.ConnectionManager;
 import java.sql.Connection;
@@ -64,10 +65,18 @@ public class JdbcCurrencyDao implements CurrencyDao {
         ) {
             stmt.setString(1, code);
             ResultSet rs = stmt.executeQuery();
+            Currency currency = getCurrencyFromResultSet(rs);
+            if(currency == null) {
+                throw new NotFoundException("Element not found");
+            }
 
-            return Optional.of(getCurrencyFromResultSet(rs));
+            //тут надо свой Exception кидать с сообщением о том, что валюта не найдена
+            return Optional.of(currency);
         } catch (SQLException e) {
             //TODO
+
+        } catch (NotFoundException e) {
+            throw new NotFoundException("Element not found");
         }
         return Optional.empty();
     }
@@ -106,11 +115,33 @@ public class JdbcCurrencyDao implements CurrencyDao {
         }
         return Optional.empty();
     }
+
+    @Override
+    public Optional<Currency> delete(Currency curr) {
+
+        final String sql = """
+                DELETE FROM Currencies
+                WHERE code = ?""";
+
+        try (
+                Connection connection = ConnectionManager.open();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, curr.getCode());
+            ResultSet rs = statement.executeQuery();
+
+            return Optional.of(getCurrencyFromResultSet(rs));
+        } catch (SQLException ex) {
+            //TODO
+        }
+        return Optional.empty();
+    }
+
     /**
      * Метод для ExchangeRate
      * */
     @Override
-    public Optional<Currency> findById(int id) {
+    public Optional<Currency> findById(Long id) {
         final String sql = """
                 SELECT *
                 FROM Currencies 
@@ -119,7 +150,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 Connection con = ConnectionManager.open();
                 PreparedStatement stmt = con.prepareStatement(sql);
         ) {
-            stmt.setInt(1, id);
+            stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
 
             return Optional.of(getCurrencyFromResultSet(rs));
@@ -129,10 +160,20 @@ public class JdbcCurrencyDao implements CurrencyDao {
         return Optional.empty();
     }
 
-    private Currency getCurrencyFromResultSet(ResultSet rs) throws SQLException {
-        return new Currency(rs.getInt("id"),
-                rs.getString("code"),
-                rs.getString("full_name"),
-                rs.getString("sign"));
+    private Currency getCurrencyFromResultSet(ResultSet rs)  {
+        try {
+
+            Long id = rs.getLong("id");
+            String code = rs.getString("code");
+            String fullName = rs.getString("full_name");
+            String sign = rs.getString("sign");
+
+            if (code == null) {
+                return null;
+            }
+            return new Currency(id, code, fullName, sign);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

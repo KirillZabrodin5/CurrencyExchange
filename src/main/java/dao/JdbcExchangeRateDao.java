@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class JdbcExchangeRateDao implements ExchangeRateDao {
@@ -58,7 +59,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
      */
     @Override
     public Optional<ExchangeRate> findByCode(String baseCode, String targetCode) {
-        int idExRate = getId(baseCode, targetCode);
+        Long idExRate = getId(baseCode, targetCode);
         JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
 
         ReceivedRate rate = new ReceivedRate(
@@ -84,25 +85,50 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
         final String sql = """
                 INSERT INTO ExchangeRates(base_currency_id, 
                 target_currency_id, rate)
-                VALUES (?, ?, ?)""";
+                VALUES (?, ?, ?)
+                RETURNING id, base_currency_id, 
+                target_currency_id, rate""";
 
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql);
         ) {
-            int idStart = exchangeRate.getBaseCurrency().getId();
-            int idEnd = exchangeRate.getTargetCurrency().getId();
-            if ((idStart == idEnd) || (idStart == 0 || idEnd == 0)) {
+            Long idStart = exchangeRate.getBaseCurrency().getId();
+            Long idEnd = exchangeRate.getTargetCurrency().getId();
+            if ((Objects.equals(idStart, idEnd)) || (idStart == 0 || idEnd == 0)) {
                 throw new RuntimeException("Таких валют не существует");
             }
-            statement.setInt(1, idStart);
-            statement.setInt(2, idEnd);
+            statement.setLong(1, idStart);
+            statement.setLong(2, idEnd);
             statement.setDouble(3, exchangeRate.getRate());
             ResultSet rs = statement.executeQuery();
 
             return Optional.of(getExchangeRate(rs));
         } catch (SQLException ex) {
             //throw new RuntimeException("Не получилось добавить новый обменный курс");
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<ExchangeRate> delete(ExchangeRate exchangeRate) {
+
+        final String sql = """
+                DELETE FROM ExchangeRate
+                WHERE base_currency_id = ? AND
+                target_currency_id = ?""";
+
+        try (
+                Connection connection = ConnectionManager.open();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, exchangeRate.getBaseCurrency().getId());
+            statement.setLong(2, exchangeRate.getTargetCurrency().getId());
+            ResultSet rs = statement.executeQuery();
+
+            return Optional.of(getExchangeRate(rs));
+        } catch (SQLException ex) {
+            //TODO
         }
         return Optional.empty();
     }
@@ -119,18 +145,20 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 UPDATE ExchangeRates
                 SET rate = ?
                 WHERE base_currency_id = ? AND
-                      target_currency_id = ?""";
+                      target_currency_id = ?
+                RETURNING id, base_currency_id, 
+                target_currency_id, rate""";
 
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement2 = connection.prepareStatement(sql);
         ) {
-            int idStart = exchangeRate.getBaseCurrency().getId();
-            int idEnd = exchangeRate.getTargetCurrency().getId();
+            Long idStart = exchangeRate.getBaseCurrency().getId();
+            Long idEnd = exchangeRate.getTargetCurrency().getId();
 
             statement2.setDouble(1, exchangeRate.getRate());
-            statement2.setInt(2, idStart);
-            statement2.setInt(3, idEnd);
+            statement2.setLong(2, idStart);
+            statement2.setLong(3, idEnd);
             ResultSet rs = statement2.executeQuery();
 
             return Optional.of(getExchangeRate(rs));
@@ -144,7 +172,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
     /**
      * Делаем запрос к таблице ExchangeRate и возвращаем rate
      */
-    public double getRate(int idStartCurrency, int idEndCurrency) {
+    public double getRate(Long idStartCurrency, Long idEndCurrency) {
         String sql = """
                 SELECT rate
                 FROM ExchangeRates
@@ -168,18 +196,16 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
 
     private ExchangeRate getExchangeRate(ResultSet resultSet) {
         JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
-        int id;
         ExchangeRate exchangeRate;
         try {
-            id = resultSet.getInt(1);
-
+            Long id = resultSet.getLong(1);
 
             Currency currency1 = jdbcCurrencyDao.
-                    findByCode(resultSet.getString(2))
+                    findById(resultSet.getLong(2))
                     .orElse(null);
 
-            Currency currency2 = jdbcCurrencyDao
-                    .findByCode(resultSet.getString(3))
+            Currency currency2 = jdbcCurrencyDao.
+                    findById(resultSet.getLong(3))
                     .orElse(null);
 
             double rate = resultSet.getDouble(4);
@@ -198,8 +224,8 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
     /**
      * Метод для получения id пары обменного курса из одной валюты в другую
      */
-    private int getId(String baseCode, String targetCode) {
-        int idExRate;
+    private Long getId(String baseCode, String targetCode) {
+        Long idExRate;
 
         final String sql = """
                 SELECT id
@@ -213,11 +239,11 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 PreparedStatement stmt = connection.prepareStatement(sql)
         ) {
             JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
-            stmt.setInt(1,
+            stmt.setLong(1,
                     jdbcCurrencyDao.findByCode(baseCode).orElse(null).getId());
-            stmt.setInt(2,
+            stmt.setLong(2,
                     jdbcCurrencyDao.findByCode(targetCode).orElse(null).getId());
-            idExRate = stmt.executeQuery().getInt(1);
+            idExRate = stmt.executeQuery().getLong(1);
         } catch (SQLException ex) {
             throw new RuntimeException(ex);
         }

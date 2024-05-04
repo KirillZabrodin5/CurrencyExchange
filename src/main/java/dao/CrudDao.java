@@ -7,4 +7,6 @@ public interface CrudDao<T, C> {
     List<T> findAll();
 
     Optional<T> save(T entity);
+
+    Optional<T> delete(T entity);
 }

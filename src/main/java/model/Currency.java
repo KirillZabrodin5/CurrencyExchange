@@ -1,7 +1,7 @@
 package model;
 
 public class Currency {
-    private int id = 0;
+    private Long id = 0L;
     private String code = "";
     private String name = "";
     private String sign = "";
@@ -15,18 +15,18 @@ public class Currency {
         this.sign = sign;
     }
 
-    public Currency(int id, String code, String name, String sign) {
+    public Currency(Long id, String code, String name, String sign) {
         this.id = id;
         this.code = code;
         this.name = name;
         this.sign = sign;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
