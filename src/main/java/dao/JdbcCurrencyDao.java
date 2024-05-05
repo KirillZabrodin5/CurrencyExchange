@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-//этот класс норм написан, можно так оставить
+//этот класс норм написан, можно так оставить (не понимаю,
+// нахера мне тут Optional, только проблемы доставляет с извлечением элемента в будущем)
 
 public class JdbcCurrencyDao implements CurrencyDao {
     /**

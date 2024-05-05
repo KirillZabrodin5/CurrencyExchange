@@ -1,5 +1,7 @@
 package model;
 
+import Exceptions.DatabaseUnavailableException;
+import Exceptions.NotFoundException;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
 import utils.ConnectionManager;
@@ -38,14 +40,10 @@ public class CurrencyExchange {
         double answer = -1;
 
         if (idStartCurrency == 0 || idEndCurrency == 0) {
-            System.out.println("Некорректный ввод, валют не существует. " +
-                    "Посмотрите список существующих валют и " +
-                    "повторите еще раз свой запрос.");
-            return answer;
+            throw new NotFoundException("Currencies are not found");
         }
         if (idStartCurrency.equals(idEndCurrency)) {
             return 1;
-            //здесь надо как-то так описать, чтобы rate = 1
         }
 
         String sql = """
@@ -83,7 +81,7 @@ public class CurrencyExchange {
                 }
             }
         } catch (SQLException e) {
-            //todo
+            throw new DatabaseUnavailableException("Database unavailable");
         }
 
         return answer;
