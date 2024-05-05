@@ -1,6 +1,7 @@
 package dao;
 
 import Exceptions.DatabaseUnavailableException;
+import Exceptions.EntityExistsException;
 import Exceptions.NotFoundException;
 import model.Currency;
 import utils.ConnectionManager;
@@ -80,7 +81,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * для POST /currencies (code, name and sign передаются в теле запроса)
      * HTTP коды ответов:
      * Успех - 201
-     * Отсутствует нужное поле формы - 400
+     * Отсутствует нужное поле формы - 400 (эту ошибку где-то выше по слоям надо обрабатывать)
      * Валюта с таким кодом уже существует - 409
      * Ошибка (например, база данных недоступна) - 500
      */
@@ -100,17 +101,25 @@ public class JdbcCurrencyDao implements CurrencyDao {
             statement.setString(2, curr.getName());
             statement.setString(3, curr.getSign());
             ResultSet rs = statement.executeQuery();
-
-            return Optional.of(getCurrencyFromResultSet(rs));
+            Currency currency = getCurrencyFromResultSet(rs);
+            if(currency == null) {
+                throw new EntityExistsException("Currency with code " + curr.getCode() + " already exists");
+            }
+            return Optional.of(currency);
         } catch (SQLException ex) {
-            //TODO
+            throw new DatabaseUnavailableException("Database unavailable");
         }
-        return Optional.empty();
     }
 
+    /**
+     * HTTP коды ответов:
+     * Успех - 201
+     * Отсутствует нужное поле формы - 400 (эту ошибку где-то выше по слоям надо обрабатывать)
+     * Валюта с таким кодом отсутствует в таблице - 409
+     * Ошибка (например, база данных недоступна) - 500
+     * */
     @Override
     public Optional<Currency> delete(Currency curr) {
-
         final String sql = """
                 DELETE FROM Currencies
                 WHERE code = ?
@@ -122,16 +131,23 @@ public class JdbcCurrencyDao implements CurrencyDao {
         ) {
             statement.setString(1, curr.getCode());
             ResultSet rs = statement.executeQuery();
-
-            return Optional.of(getCurrencyFromResultSet(rs));
+            Currency currency = getCurrencyFromResultSet(rs);
+            if(currency == null) {
+                throw new NotFoundException("Currency with code " + curr.getCode() + " not found");
+            }
+            return Optional.of(currency);
         } catch (SQLException ex) {
-            //TODO
+            throw new DatabaseUnavailableException("Database unavailable");
         }
-        return Optional.empty();
     }
 
     /**
      * Метод для ExchangeRate
+     * HTTP коды ответов:
+     * Успех - 200
+     * Код валюты отсутствует в адресе - 400 (эту ошибку где-то выше по слоям надо обрабатывать)
+     * Валюта не найдена - 404
+     * Ошибка (например, база данных недоступна) - 500
      * */
     @Override
     public Optional<Currency> findById(Long id) {
@@ -145,17 +161,18 @@ public class JdbcCurrencyDao implements CurrencyDao {
         ) {
             stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
-
-            return Optional.of(getCurrencyFromResultSet(rs));
+            Currency currency = getCurrencyFromResultSet(rs);
+            if(currency == null) {
+                throw new NotFoundException("Currency with id " + id + " not found");
+            }
+            return Optional.of(currency);
         } catch (SQLException e) {
-            e.printStackTrace(System.err);
+            throw new DatabaseUnavailableException("Database unavailable");
         }
-        return Optional.empty();
     }
 
     private Currency getCurrencyFromResultSet(ResultSet rs)  {
         try {
-
             Long id = rs.getLong("id");
             String code = rs.getString("code");
             String fullName = rs.getString("full_name");
@@ -166,7 +183,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             }
             return new Currency(id, code, fullName, sign);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DatabaseUnavailableException("Database unavailable");
         }
     }
 }
