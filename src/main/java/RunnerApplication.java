@@ -1,8 +1,11 @@
+import dao.JdbcCurrencyDao;
 import dto.CurrencyExchangeDto;
+import dto.ExchangeRateDto;
+import model.Currency;
 
 public class RunnerApplication {
     public static void main(String[] args) {
-        CurrencyExchangeDto currencyExchangeDto = new CurrencyExchangeDto();
-        System.out.println(currencyExchangeDto.exchangeCurrency("RUB", "EUR", 100));
+        ExchangeRateDto exchangeRateDto = new ExchangeRateDto();
+        System.out.println(exchangeRateDto.getJsonAllExchangeRate());
     }
 }

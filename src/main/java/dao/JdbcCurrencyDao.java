@@ -4,6 +4,8 @@ import Exceptions.DatabaseUnavailableException;
 import Exceptions.EntityExistsException;
 import Exceptions.NotFoundException;
 import model.Currency;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 import utils.ConnectionManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,10 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-//этот класс норм написан, можно так оставить (не понимаю,
-// нахера мне тут Optional, только проблемы доставляет с извлечением элемента в будущем)
+//этот класс норм написан, можно так оставить (не понимаю только
+// нахера мне тут Optional, он только проблемы доставляет с извлечением валюты в других слоях)
 
 public class JdbcCurrencyDao implements CurrencyDao {
+    //This method is done
     /**
      * Метод для получения всех валют из таблицы Currencies,
      * для GET /currencies
@@ -44,7 +47,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
         return currencies;
     }
 
-    //todo 400 error
+    //only todo 400 error
     /**
      * Метод для получения валюты по заданному коду.
      * Example: GET /currency/EUR
@@ -77,6 +80,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
         }
     }
 
+    //only todo 400 error
     /**
      * Метод для добавления в таблицу новой валюты,
      * для POST /currencies (code, name and sign передаются в теле запроса)
@@ -103,15 +107,20 @@ public class JdbcCurrencyDao implements CurrencyDao {
             statement.setString(3, curr.getSign());
             ResultSet rs = statement.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
-            if(currency == null) {
-                throw new EntityExistsException("Currency with code " + curr.getCode() + " already exists");
-            }
+
             return Optional.of(currency);
         } catch (SQLException ex) {
+            if (ex instanceof SQLiteException sqLiteException) {
+                if (sqLiteException.getResultCode().code ==
+                        SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code) {
+                    throw new EntityExistsException("Currency already exists");
+                }
+            }
             throw new DatabaseUnavailableException("Database unavailable");
         }
     }
 
+    //only todo 400 error
     /**
      * HTTP коды ответов:
      * Успех - 201
@@ -142,6 +151,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
         }
     }
 
+    //only todo 400 error
     /**
      * Метод для ExchangeRate
      * HTTP коды ответов:

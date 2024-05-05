@@ -42,12 +42,12 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql);
         ) {
-            statement.executeQuery();
-            ResultSet resultSet = statement.getResultSet();
+            ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 list.add(getExchangeRate(resultSet));
             }
         } catch (SQLException ex) {
+            System.out.println(ex.getMessage() + " " + ex.getErrorCode());
             throw new DatabaseUnavailableException("Database unavailable");
         }
         return list;
@@ -65,16 +65,44 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
      */
     @Override
     public Optional<ExchangeRate> findByCode(String baseCode, String targetCode) {
-        Long idExRate = getId(baseCode, targetCode);
-        JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
+        final String sql = """
+                SELECT ex.id,
+                       (SELECT c.code
+                        FROM Currencies as c
+                        WHERE c.code = ?) as base,
+                       (SELECT c.code
+                        FROM Currencies as c
+                        WHERE c.code = ?) as target,
+                        ex.rate
+                FROM ExchangeRates as ex""";
 
-        CurrencyExchange rate = new CurrencyExchange(baseCode, targetCode);
+        try (
+                Connection connection = ConnectionManager.open();
+                PreparedStatement statement = connection.prepareStatement(sql);
+        ) {
+            statement.setString(1, baseCode);
+            statement.setString(2, targetCode);
+            ResultSet resultSet = statement.executeQuery();
+            ExchangeRate exchangeRate = null;
+            while (resultSet.next()) {
+                exchangeRate = getExchangeRate(resultSet);
+            }
+            return Optional.of(exchangeRate);
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage() + " " + ex.getErrorCode());
+            throw new DatabaseUnavailableException("Database unavailable");
+        }
 
-        return Optional.of(new ExchangeRate(idExRate,
-                jdbcCurrencyDao.findByCode(baseCode).get(),
-                jdbcCurrencyDao.findByCode(targetCode).get(),
-                rate.translate()
-        ));
+//        Long idExRate = getId(baseCode, targetCode);
+//        JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
+
+//        CurrencyExchange rate = new CurrencyExchange(baseCode, targetCode);
+//
+//        return Optional.of(new ExchangeRate(idExRate,
+//                jdbcCurrencyDao.findByCode(baseCode).get(),
+//                jdbcCurrencyDao.findByCode(targetCode).get(),
+//                rate.translate()
+//        ));
     }
 
     /**
@@ -236,13 +264,14 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
             if (id == 0L) {
                 throw new NotFoundException("Currency not found");
             }
-
+            String code1 = resultSet.getString(2);
             Currency currency1 = jdbcCurrencyDao.
-                    findById(resultSet.getLong(2))
+                    findByCode(code1)
                     .orElse(null);
 
+            String code2 = resultSet.getString(3);
             Currency currency2 = jdbcCurrencyDao.
-                    findById(resultSet.getLong(3))
+                    findByCode(code2)
                     .orElse(null);
 
             double rate = resultSet.getDouble(4);
