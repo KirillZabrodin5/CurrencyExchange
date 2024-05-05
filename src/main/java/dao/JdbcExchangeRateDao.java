@@ -1,6 +1,8 @@
 package dao;
 
+import Exceptions.DatabaseUnavailableException;
 import model.Currency;
+import model.CurrencyExchange;
 import model.ExchangeRate;
 import utils.ConnectionManager;
 
@@ -14,7 +16,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class JdbcExchangeRateDao implements ExchangeRateDao {
-
     /**
      * Метод, который должен в каком-то виде, возвращать все обменные курсы.
      * Как это организовать я пока не понимаю
@@ -46,9 +47,8 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 list.add(getExchangeRate(resultSet));
             }
         } catch (SQLException ex) {
-            //TODO
+            throw new DatabaseUnavailableException("Database unavailable");
         }
-
         return list;
     }
 
@@ -62,7 +62,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
         Long idExRate = getId(baseCode, targetCode);
         JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
 
-        ReceivedRate rate = new ReceivedRate(
+        CurrencyExchange rate = new CurrencyExchange(
                 jdbcCurrencyDao.findByCode(baseCode).orElse(null).getCode(),
                 jdbcCurrencyDao.findByCode(targetCode).orElse(null).getCode()
         );

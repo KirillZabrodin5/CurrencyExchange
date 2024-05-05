@@ -1,6 +1,7 @@
-package dao;
+package model;
 
-import model.Currency;
+import dao.JdbcCurrencyDao;
+import dao.JdbcExchangeRateDao;
 import utils.ConnectionManager;
 
 import java.sql.Connection;
@@ -15,12 +16,12 @@ import java.sql.SQLException;
  * Основой метод класса - translate, с помощью него
  * определяем маршрут перевода и возвращаем rate
  */
-public final class ReceivedRate {
+public class CurrencyExchange {
     private final Long idStartCurrency;
     private final Long idEndCurrency;
     private final JdbcExchangeRateDao jdbcExchangeRateDao = new JdbcExchangeRateDao();
 
-    public ReceivedRate(String startCodeCurrency, String endCodeCurrency) {
+    public CurrencyExchange(String startCodeCurrency, String endCodeCurrency) {
         JdbcCurrencyDao dao = new JdbcCurrencyDao();
         idStartCurrency = dao
                 .findByCode(startCodeCurrency)
@@ -37,9 +38,9 @@ public final class ReceivedRate {
         double answer = -1;
 
         if (idStartCurrency == 0 || idEndCurrency == 0) {
-            System.out.println("Некорректный ввод, одной из (двух) валют не существует. " +
+            System.out.println("Некорректный ввод, валют не существует. " +
                     "Посмотрите список существующих валют и " +
-                    "повторите еще раз.");
+                    "повторите еще раз свой запрос.");
             return answer;
         }
         if (idStartCurrency.equals(idEndCurrency)) {
@@ -48,7 +49,7 @@ public final class ReceivedRate {
         }
 
         String sql = """
-                SELECT count(*)
+                SELECT rate
                 FROM ExchangeRates
                 WHERE base_currency_id = ?
                 and target_currency_id = ?
@@ -62,49 +63,42 @@ public final class ReceivedRate {
             statement.setLong(2, idEndCurrency);
             ResultSet rs = statement.executeQuery();
 
-            int result = rs.getInt(1);
-            if (result == 1) {
+            double result = rs.getInt(1);
+            if (result > 0) {
                 //если есть прямой перевод, то работаем
-                answer = directTranslate();
+                answer = result;
             } else {
                 //если прямого перевода нет, то 2 случая:
                 //есть перевод BA и есть перевод с промежуточной валютой USD
                 statement.setLong(1, idEndCurrency);
                 statement.setLong(2, idStartCurrency);
                 rs = statement.executeQuery();
-                if (rs.getInt(1) == 1) {
+                result = rs.getInt(1);
+                if (result > 0) {
                     //BA
-                    answer = indirectTranslate();
+                    answer =  1 / result;
                 } else {
                     //перевод с промежуточной валютой USD
-                    answer = translationWithIntermediateMeaning();
+                    answer = transferWithIntermediateCurrency();
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            //todo
         }
 
         return answer;
     }
 
-    private double directTranslate() {
-        return jdbcExchangeRateDao.getRate(idStartCurrency, idEndCurrency);
-    }
-
-    private double indirectTranslate() {
-        return 1 / jdbcExchangeRateDao.getRate(idEndCurrency, idStartCurrency);
-    }
-
-    private double translationWithIntermediateMeaning() {
+    private double transferWithIntermediateCurrency() {
         JdbcCurrencyDao dao = new JdbcCurrencyDao();
         Currency currency = dao.findByCode("USD").get();
-        Long idUSD = currency.getId();
+        Long idUsd = currency.getId();
 
         double USDtoStart = jdbcExchangeRateDao
-                .getRate(idUSD, idStartCurrency);
+                .getRate(idUsd, idStartCurrency);
 
         double USDtoEnd = jdbcExchangeRateDao
-                .getRate(idUSD, idEndCurrency);
+                .getRate(idUsd, idEndCurrency);
         return USDtoEnd / USDtoStart;
     }
 }

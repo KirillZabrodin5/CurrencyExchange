@@ -1,5 +1,6 @@
 package dao;
 
+import Exceptions.DatabaseUnavailableException;
 import Exceptions.NotFoundException;
 import model.Currency;
 import utils.ConnectionManager;
@@ -14,7 +15,6 @@ import java.util.Optional;
 //этот класс норм написан, можно так оставить
 
 public class JdbcCurrencyDao implements CurrencyDao {
-
     /**
      * Метод для получения всех валют из таблицы Currencies,
      * для GET /currencies
@@ -37,18 +37,18 @@ public class JdbcCurrencyDao implements CurrencyDao {
             }
 
         } catch (SQLException e) {
-            //TODO 500 (БАЗА ДАННЫХ НЕДОСТУПНА) STATUS
+            throw new DatabaseUnavailableException("Database unavailable");
         }
         return currencies;
     }
 
+    //todo 400 error
     /**
      * Метод для получения валюты по заданному коду.
      * Example: GET /currency/EUR
-     *
      * HTTP коды ответов:
      * Успех - 200
-     * Код валюты отсутствует в адресе - 400
+     * Код валюты отсутствует в адресе - 400 (эту ошибку где-то выше по слоям надо обрабатывать)
      * Валюта не найдена - 404
      * Ошибка (например, база данных недоступна) - 500
      */
@@ -67,26 +67,17 @@ public class JdbcCurrencyDao implements CurrencyDao {
             ResultSet rs = stmt.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
             if(currency == null) {
-                throw new NotFoundException("Element not found");
+                throw new NotFoundException("Currency not found");
             }
-
-            //тут надо свой Exception кидать с сообщением о том, что валюта не найдена
             return Optional.of(currency);
         } catch (SQLException e) {
-            //TODO
-
-        } catch (NotFoundException e) {
-            throw new NotFoundException("Element not found");
+            throw new DatabaseUnavailableException("Database unavailable");
         }
-        return Optional.empty();
     }
-
-
 
     /**
      * Метод для добавления в таблицу новой валюты,
      * для POST /currencies (code, name and sign передаются в теле запроса)
-     *
      * HTTP коды ответов:
      * Успех - 201
      * Отсутствует нужное поле формы - 400
@@ -98,7 +89,8 @@ public class JdbcCurrencyDao implements CurrencyDao {
 
         final String sql = """
                 INSERT INTO Currencies(code, full_name, sign)
-                VALUES (?, ?, ?)""";
+                VALUES (?, ?, ?)
+                RETURNING *""";
 
         try (
                 Connection connection = ConnectionManager.open();
@@ -121,7 +113,8 @@ public class JdbcCurrencyDao implements CurrencyDao {
 
         final String sql = """
                 DELETE FROM Currencies
-                WHERE code = ?""";
+                WHERE code = ?
+                RETURNING *""";
 
         try (
                 Connection connection = ConnectionManager.open();

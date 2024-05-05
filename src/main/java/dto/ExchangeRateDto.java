@@ -43,6 +43,7 @@ public class ExchangeRateDto {
     }
 
     public String saveExchangeRate(String baseCode, String targetCode, double rate) {
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
         Currency baseCurrency = jdbcCurrencyDao.findByCode(baseCode).orElseThrow(
                 () -> new NotFoundException("element not found")
         );
