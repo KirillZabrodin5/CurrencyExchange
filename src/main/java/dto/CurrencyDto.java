@@ -1,56 +1,72 @@
 package dto;
 
+import Exceptions.DatabaseUnavailableException;
 import Exceptions.EntityExistsException;
 import Exceptions.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import dao.JdbcCurrencyDao;
 import model.Currency;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
  * Класс для преобразования SQL запроса в Json
- * */
+ */
 public class CurrencyDto {
     private final static ObjectMapper mapper = new ObjectMapper();
     private final static JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
 
-    public String getJsonAllCurrencies() {
+    public String getAllJson() {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        List<Currency> currencies = jdbcCurrencyDao.findAll();
         try {
-            return mapper.writeValueAsString(currencies);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            List<Currency> currencies = jdbcCurrencyDao.findAll();
+            try {
+                return mapper.writeValueAsString(currencies);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (DatabaseUnavailableException exception) {
+            String message = exception.getMessage();
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", message);
+            return json.toString();
         }
     }
 
-    public String getJsonCurrency(String code) {
+    public String getJson(String code) {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        Currency currency = jdbcCurrencyDao.findByCode(code).orElseThrow(
-                () -> new NotFoundException("element not found")
-        );
-        try {
-            return mapper.writeValueAsString(currency);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public String addJsonCurrency(String code, String name, String sign) {
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        jdbcCurrencyDao.save(new Currency(code, name, sign));
-        Currency currency = jdbcCurrencyDao.findByCode(code).orElseThrow(
-                () -> new EntityExistsException("element already exists in database")
-        );
         try{
-            return mapper.writeValueAsString(currency);
+            Currency currency = jdbcCurrencyDao.findByCode(code).orElseThrow();
+            try {
+                return mapper.writeValueAsString(currency);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (DatabaseUnavailableException | NotFoundException exception) {
+            String message = exception.getMessage();
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", message);
+            return json.toString();
+        }
+    }
 
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+    public String addJson(String code, String name, String sign) {
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        try {
+            Currency currency = jdbcCurrencyDao.save(new Currency(code, name, sign)).orElseThrow();
+            try {
+                return mapper.writeValueAsString(currency);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (DatabaseUnavailableException | EntityExistsException exception) {
+            String message = exception.getMessage();
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", message);
+            return json.toString();
         }
     }
 }

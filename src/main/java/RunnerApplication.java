@@ -1,17 +1,11 @@
-import com.fasterxml.jackson.core.JsonToken;
-import dao.JdbcCurrencyDao;
-import dao.JdbcExchangeRateDao;
 import dto.CurrencyExchangeDto;
-import dto.ExchangeRateDto;
-import model.Currency;
-import model.ExchangeRate;
+import model.CurrencyExchange;
 
 public class RunnerApplication {
     public static void main(String[] args) {
-        JdbcExchangeRateDao exchangeRateDao = new JdbcExchangeRateDao();
-        JdbcCurrencyDao currencyDao = new JdbcCurrencyDao();
-        Currency currency1 = currencyDao.findByCode("US").get();
-        Currency currency2 = currencyDao.findByCode("RUB").get();
-        System.out.println(exchangeRateDao.save(new ExchangeRate(currency1, currency2, 63.75)).get());
+//        CurrencyExchangeDto exchangeDto = new CurrencyExchangeDto();
+//        System.out.println(exchangeDto.exchangeCurrency("USB","RUB", 100));
+        String message = "abc";
+        message.substring(0,4);
     }
 }

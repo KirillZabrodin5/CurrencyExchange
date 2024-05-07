@@ -1,9 +1,11 @@
 package dto;
 
+import Exceptions.DatabaseUnavailableException;
 import Exceptions.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import dao.JdbcCurrencyDao;
 import model.Currency;
 import model.CurrencyExchange;
@@ -15,22 +17,29 @@ public class CurrencyExchangeDto {
 
     public String exchangeCurrency(String baseCode, String targetCode, double amount) {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        try {
+            HelperCurrencyExchange helper = getHelperCurrencyExchange(baseCode, targetCode, amount);
+            try {
+                return mapper.writeValueAsString(helper);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (DatabaseUnavailableException | NotFoundException e) {
+            String message = e.getMessage();
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", message);
+            return json.toString();
+        }
+    }
+
+    private static HelperCurrencyExchange getHelperCurrencyExchange(String baseCode, String targetCode, double amount) {
+        JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
+        Currency baseCurrency = jdbcCurrencyDao.findByCode(baseCode).orElseThrow();
+        Currency targetCurrency = jdbcCurrencyDao.findByCode(targetCode).orElseThrow();
         CurrencyExchange currencyExchange = new CurrencyExchange(baseCode, targetCode);
         double rate = currencyExchange.translate();
-        JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
-        Currency baseCurrency = jdbcCurrencyDao.findByCode(baseCode).orElseThrow(
-                () -> new NotFoundException("element not found")
-        );
-        Currency targetCurrency = jdbcCurrencyDao.findByCode(targetCode).orElseThrow(
-                () -> new NotFoundException("element not found")
-        );
-        HelperCurrencyExchange helper = new HelperCurrencyExchange(baseCurrency, targetCurrency,
-                rate, amount);
-        try {
-            return mapper.writeValueAsString(helper);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        HelperCurrencyExchange helper = new HelperCurrencyExchange(baseCurrency, targetCurrency, rate, amount);
+        return helper;
     }
 
     private static class HelperCurrencyExchange {

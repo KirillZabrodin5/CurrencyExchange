@@ -23,25 +23,21 @@ public class CurrencyExchange {
     private final Long idEndCurrency;
     private final JdbcExchangeRateDao jdbcExchangeRateDao = new JdbcExchangeRateDao();
 
-    public CurrencyExchange(String startCodeCurrency, String endCodeCurrency) {
+    public CurrencyExchange(String startCodeCurrency, String endCodeCurrency) throws NotFoundException, DatabaseUnavailableException {
         JdbcCurrencyDao dao = new JdbcCurrencyDao();
         idStartCurrency = dao
                 .findByCode(startCodeCurrency)
-                .orElse(null)
+                .orElseThrow()
                 .getId();
         idEndCurrency = dao
                 .findByCode(endCodeCurrency)
-                .orElse(null)
+                .orElseThrow()
                 .getId();
-
     }
 
     public double translate() {
-        double answer = -1;
+        double answer;
 
-        if (idStartCurrency == 0 || idEndCurrency == 0) {
-            throw new NotFoundException("Currencies are not found");
-        }
         if (idStartCurrency.equals(idEndCurrency)) {
             return 1;
         }
@@ -60,7 +56,6 @@ public class CurrencyExchange {
             statement.setLong(1, idStartCurrency);
             statement.setLong(2, idEndCurrency);
             ResultSet rs = statement.executeQuery();
-
             double result = rs.getInt(1);
             if (result > 0) {
                 //если есть прямой перевод, то работаем
@@ -89,7 +84,7 @@ public class CurrencyExchange {
 
     private double transferWithIntermediateCurrency() {
         JdbcCurrencyDao dao = new JdbcCurrencyDao();
-        Currency currency = dao.findByCode("USD").get();
+        Currency currency = dao.findByCode("USD").orElseThrow();
         Long idUsd = currency.getId();
 
         double USDtoStart = jdbcExchangeRateDao

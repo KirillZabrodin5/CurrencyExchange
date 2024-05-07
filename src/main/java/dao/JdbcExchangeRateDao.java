@@ -306,11 +306,9 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
         ) {
             JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
             stmt.setLong(1,
-                    jdbcCurrencyDao.findByCode(baseCode).orElseThrow(
-                            () -> new NotFoundException("Currency not found")).getId());
+                    jdbcCurrencyDao.findByCode(baseCode).orElseThrow().getId());
             stmt.setLong(2,
-                    jdbcCurrencyDao.findByCode(targetCode).orElseThrow(
-                            () -> new NotFoundException("Currency not found")).getId());
+                    jdbcCurrencyDao.findByCode(targetCode).orElseThrow().getId());
             idExRate = stmt.executeQuery().getLong(1);
         } catch (SQLException ex) {
             throw new DatabaseUnavailableException("Database unavailable");
