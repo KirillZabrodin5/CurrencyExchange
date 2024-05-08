@@ -14,7 +14,7 @@ import model.Currency;
 import model.ExchangeRate;
 
 import java.util.List;
-//надо сделать рефакторинг и, как минимум, убрать из названий методов суффикс ExchangeRate
+
 public class ExchangeRateDto {
     ObjectMapper mapper = new ObjectMapper();
     JdbcExchangeRateDao jdbcExchangeRateDao = new JdbcExchangeRateDao();
@@ -41,7 +41,7 @@ public class ExchangeRateDto {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         String baseCode;
         String targetCode;
-        try{
+        try {
             baseCode = exchangeTwoCode.substring(0, 3);
             targetCode = exchangeTwoCode.substring(3, 6);
         } catch (StringIndexOutOfBoundsException e) {
@@ -68,7 +68,7 @@ public class ExchangeRateDto {
     public String save(String baseCode, String targetCode, double rate) {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-        try{
+        try {
             if (!(baseCode.length() == 3 && targetCode.length() == 3)) {
                 throw new InvalidParameterException("Currency code pairs missing at address");
             }
@@ -102,7 +102,7 @@ public class ExchangeRateDto {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         String baseCode;
         String targetCode;
-        try{
+        try {
             baseCode = exchangeTwoCode.substring(0, 3);
             targetCode = exchangeTwoCode.substring(3, 6);
         } catch (StringIndexOutOfBoundsException e) {

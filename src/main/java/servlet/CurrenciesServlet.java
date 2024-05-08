@@ -1,5 +1,6 @@
 package servlet;
 
+import dto.CurrencyDto;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -7,9 +8,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.PrintWriter;
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
@@ -19,23 +19,17 @@ public class CurrenciesServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-//        response.setContentType("text/plain");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        CurrencyDto data = new CurrencyDto();
+        String answer = data.getAllJson();
+
         response.setCharacterEncoding("UTF-8");
-
-        var stream = CurrenciesServlet.class.getResourceAsStream("/jsonCur.json");
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                response.setContentType("application/json");
-                response.getWriter().write(line);
-                response.setStatus(200);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
+        out.write(answer);
+        out.flush();
     }
+
     @Override
     public void destroy() {
         super.destroy();

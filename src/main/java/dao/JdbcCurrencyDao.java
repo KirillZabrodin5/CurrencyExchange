@@ -7,6 +7,7 @@ import model.Currency;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 import utils.ConnectionManager;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 public class JdbcCurrencyDao implements CurrencyDao {
     //This method is done
+
     /**
      * Метод для получения всех валют из таблицы Currencies,
      * для GET /currencies
@@ -48,6 +50,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
     }
 
     //only todo 400 error
+
     /**
      * Метод для получения валюты по заданному коду.
      * Example: GET /currency/EUR
@@ -71,7 +74,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             stmt.setString(1, code);
             ResultSet rs = stmt.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
-            if(currency == null) {
+            if (currency == null) {
                 throw new NotFoundException("Currency not found");
             }
             return Optional.of(currency);
@@ -81,6 +84,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
     }
 
     //only todo 400 error
+
     /**
      * Метод для добавления в таблицу новой валюты,
      * для POST /currencies (code, name and sign передаются в теле запроса)
@@ -121,13 +125,14 @@ public class JdbcCurrencyDao implements CurrencyDao {
     }
 
     //only todo 400 error
+
     /**
      * HTTP коды ответов:
      * Успех - 201
      * Отсутствует нужное поле формы - 400 (эту ошибку где-то выше по слоям надо обрабатывать)
      * Валюта с таким кодом отсутствует в таблице - 409
      * Ошибка (например, база данных недоступна) - 500
-     * */
+     */
     @Override
     public Optional<Currency> delete(Currency curr) {
         final String sql = """
@@ -142,7 +147,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             statement.setString(1, curr.getCode());
             ResultSet rs = statement.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
-            if(currency == null) {
+            if (currency == null) {
                 throw new NotFoundException("Currency with code " + curr.getCode() + " not found");
             }
             return Optional.of(currency);
@@ -152,6 +157,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
     }
 
     //only todo 400 error
+
     /**
      * Метод для ExchangeRate
      * HTTP коды ответов:
@@ -159,7 +165,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Код валюты отсутствует в адресе - 400 (эту ошибку где-то выше по слоям надо обрабатывать)
      * Валюта не найдена - 404
      * Ошибка (например, база данных недоступна) - 500
-     * */
+     */
     @Override
     public Optional<Currency> findById(Long id) {
         final String sql = """
@@ -173,7 +179,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
-            if(currency == null) {
+            if (currency == null) {
                 throw new NotFoundException("Currency with id " + id + " not found");
             }
             return Optional.of(currency);
@@ -182,7 +188,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
         }
     }
 
-    private Currency getCurrencyFromResultSet(ResultSet rs)  {
+    private Currency getCurrencyFromResultSet(ResultSet rs) {
         try {
             Long id = rs.getLong("id");
             String code = rs.getString("code");

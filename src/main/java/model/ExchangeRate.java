@@ -6,7 +6,8 @@ public class ExchangeRate {
     private Currency targetCurrency;
     private double rate;
 
-    public ExchangeRate() {}
+    public ExchangeRate() {
+    }
 
     public ExchangeRate(Currency baseCurrency, Currency targetCurrency, double rate) {
         this.baseCurrency = baseCurrency;

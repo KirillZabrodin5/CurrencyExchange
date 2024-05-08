@@ -69,7 +69,7 @@ public class CurrencyExchange {
                 result = rs.getInt(1);
                 if (result > 0) {
                     //BA
-                    answer =  1 / result;
+                    answer = 1 / result;
                 } else {
                     //перевод с промежуточной валютой USD
                     answer = transferWithIntermediateCurrency();

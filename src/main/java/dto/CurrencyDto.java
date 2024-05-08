@@ -38,7 +38,7 @@ public class CurrencyDto {
 
     public String getJson(String code) {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        try{
+        try {
             Currency currency = jdbcCurrencyDao.findByCode(code).orElseThrow();
             try {
                 return mapper.writeValueAsString(currency);

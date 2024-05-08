@@ -6,7 +6,7 @@ public class Currency {
     private String name = "";
     private String sign = "";
 
-    public Currency(){
+    public Currency() {
     }
 
     public Currency(String code, String name, String sign) {
