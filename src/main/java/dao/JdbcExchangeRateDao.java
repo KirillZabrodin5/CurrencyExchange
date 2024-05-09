@@ -3,6 +3,8 @@ package dao;
 import Exceptions.DatabaseUnavailableException;
 import Exceptions.EntityExistsException;
 import Exceptions.NotFoundException;
+import dto.CurrencyDto;
+import dto.ExchangeRateDto;
 import model.Currency;
 import model.ExchangeRate;
 import org.sqlite.SQLiteErrorCode;
@@ -45,7 +47,6 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 list.add(getExchangeRate(resultSet));
             }
         } catch (SQLException ex) {
-            System.out.println(ex.getMessage() + " " + ex.getErrorCode());
             throw new DatabaseUnavailableException("Database unavailable");
         }
         return list;
@@ -62,7 +63,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<ExchangeRate> findByCode(String baseCode, String targetCode) {
+    public Optional<ExchangeRate> findByCode(ExchangeRateDto exchangeRateDto) {
         final String sql = """
                 SELECT ex.id,
                        (SELECT id
@@ -81,8 +82,8 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql);
         ) {
-            statement.setString(1, baseCode);
-            statement.setString(2, targetCode);
+            statement.setString(1, exchangeRateDto.getBaseCurrency().getCode());
+            statement.setString(2, exchangeRateDto.getTargetCurrency().getCode());
             ResultSet resultSet = statement.executeQuery();
             ExchangeRate exchangeRate = null;
             while (resultSet.next()) {
@@ -93,7 +94,6 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
             }
             return Optional.of(exchangeRate);
         } catch (SQLException ex) {
-            System.out.println(ex.getMessage() + " " + ex.getErrorCode());
             throw new DatabaseUnavailableException("Database unavailable");
         }
     }
@@ -111,7 +111,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
      */
     //в слое выше стоит из кодов валют и ставки создавать объект класса ExchangeRate
     @Override
-    public Optional<ExchangeRate> save(ExchangeRate exchangeRate) {
+    public Optional<ExchangeRate> save(ExchangeRateDto exchangeRateDto) {
         final String sql = """
                 INSERT INTO ExchangeRates(base_currency_id, 
                 target_currency_id, rate)
@@ -123,17 +123,17 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql);
         ) {
-            Long idStart = exchangeRate.getBaseCurrency().getId();
-            Long idEnd = exchangeRate.getTargetCurrency().getId();
+            Long idStart = exchangeRateDto.getBaseCurrency().getId();
+            Long idEnd = exchangeRateDto.getTargetCurrency().getId();
+
             if ((Objects.equals(idStart, idEnd)) || (idStart == 0 || idEnd == 0)) {
                 throw new NotFoundException("Currencies not found");
             }
 
             statement.setLong(1, idStart);
             statement.setLong(2, idEnd);
-            statement.setDouble(3, exchangeRate.getRate());
+            statement.setDouble(3, exchangeRateDto.getRate());
             ResultSet rs = statement.executeQuery();
-
             return Optional.of(getExchangeRate(rs));
         } catch (SQLException ex) {
             if (ex instanceof SQLiteException sqLiteException) {
@@ -147,7 +147,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
     }
 
     @Override
-    public Optional<ExchangeRate> delete(ExchangeRate exchangeRate) {
+    public Optional<ExchangeRate> delete(ExchangeRateDto exchangeRateDto) {
         final String sql = """
                 DELETE FROM ExchangeRate
                 WHERE base_currency_id = ? AND
@@ -158,11 +158,11 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql)
         ) {
-            Long idStart = exchangeRate.getBaseCurrency().getId();
+            Long idStart = exchangeRateDto.getBaseCurrency().getId();
             if (idStart == 0L) {
                 throw new NotFoundException("Currency not found");
             }
-            Long idEnd = exchangeRate.getTargetCurrency().getId();
+            Long idEnd = exchangeRateDto.getTargetCurrency().getId();
             if (idEnd == 0L) {
                 throw new NotFoundException("Currency not found");
             }
@@ -185,9 +185,8 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
      * Валютная пара отсутствует в базе данных - 404
      * Ошибка (например, база данных недоступна) - 500
      */
-    //в слое выше стоит из кодов валют и ставки создавать объект класса ExchangeRate
     @Override
-    public Optional<ExchangeRate> update(ExchangeRate exchangeRate) {
+    public Optional<ExchangeRate> update(ExchangeRateDto exchangeRate) {
         final String sql = """
                 UPDATE ExchangeRates
                 SET rate = ?
@@ -195,7 +194,6 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                       target_currency_id = ?
                 RETURNING id, base_currency_id, 
                 target_currency_id, rate""";
-
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql);
@@ -208,17 +206,14 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
             if (idEnd == 0L) {
                 throw new NotFoundException("Currency not found");
             }
-
             statement.setDouble(1, exchangeRate.getRate());
             statement.setLong(2, idStart);
             statement.setLong(3, idEnd);
             ResultSet rs = statement.executeQuery();
-
             return Optional.of(getExchangeRate(rs));
         } catch (SQLException ex) {
             throw new DatabaseUnavailableException("Database unavailable");
         }
-
     }
 
     /**
@@ -231,16 +226,17 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 WHERE base_currency_id = ?
                 and target_currency_id = ?""";
         double rate;
-
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql);
         ) {
             JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
-            jdbcCurrencyDao.findById(idStartCurrency).orElseThrow(
+            Currency currencyStart = new Currency(idStartCurrency);
+            Currency currencyEnd = new Currency(idEndCurrency);
+            jdbcCurrencyDao.findById(currencyStart).orElseThrow(
                     () -> new NotFoundException("Currency not found")
             );
-            jdbcCurrencyDao.findById(idEndCurrency).orElseThrow(
+            jdbcCurrencyDao.findById(currencyEnd).orElseThrow(
                     () -> new NotFoundException("Currency not found")
             );
             statement.setDouble(1, idStartCurrency);
@@ -266,13 +262,15 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 throw new NotFoundException("Exchange Rate not found");
             }
             Long id1 = resultSet.getLong(2);
+            Currency currencyTransit1 = new Currency(id1);
             Currency currency1 = jdbcCurrencyDao.
-                    findById(id1)
+                    findById(currencyTransit1)
                     .orElse(null);
 
             Long id2 = resultSet.getLong(3);
+            Currency currencyTransit2 = new Currency(id1);
             Currency currency2 = jdbcCurrencyDao.
-                    findById(id2)
+                    findById(currencyTransit2)
                     .orElse(null);
 
             double rate = resultSet.getDouble(4);
@@ -293,22 +291,22 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
      */
     private Long getId(String baseCode, String targetCode) {
         Long idExRate;
-
         final String sql = """
                 SELECT id
                 FROM ExchangeRates
                 WHERE base_currency_id = ? and
                 target_currency_id = ?""";
-
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement stmt = connection.prepareStatement(sql)
         ) {
             JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
+            CurrencyDto baseCurrencyDto = new CurrencyDto(baseCode);
+            CurrencyDto targetCurrencyDto = new CurrencyDto(targetCode);
             stmt.setLong(1,
-                    jdbcCurrencyDao.findByCode(baseCode).orElseThrow().getId());
+                    jdbcCurrencyDao.findByCode(baseCurrencyDto).orElseThrow().getId());
             stmt.setLong(2,
-                    jdbcCurrencyDao.findByCode(targetCode).orElseThrow().getId());
+                    jdbcCurrencyDao.findByCode(targetCurrencyDto).orElseThrow().getId());
             idExRate = stmt.executeQuery().getLong(1);
         } catch (SQLException ex) {
             throw new DatabaseUnavailableException("Database unavailable");

@@ -1,11 +1,10 @@
 package dao;
 
+import dto.ExchangeRateDto;
 import model.ExchangeRate;
 
 import java.util.Optional;
 
-public interface ExchangeRateDao extends CrudDao<ExchangeRate, String> {
-    Optional<ExchangeRate> findByCode(String baseCode, String targetCode);
-
-    Optional<ExchangeRate> update(ExchangeRate exchangeRate);
+public interface ExchangeRateDao extends CrudDao<ExchangeRate, ExchangeRateDto> {
+    Optional<ExchangeRate> update(ExchangeRateDto exchangeRateDto);
 }

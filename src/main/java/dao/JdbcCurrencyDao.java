@@ -3,6 +3,7 @@ package dao;
 import Exceptions.DatabaseUnavailableException;
 import Exceptions.EntityExistsException;
 import Exceptions.NotFoundException;
+import dto.CurrencyDto;
 import model.Currency;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
@@ -17,11 +18,9 @@ import java.util.List;
 import java.util.Optional;
 
 //этот класс норм написан, можно так оставить (не понимаю только
-// нахера мне тут Optional, он только проблемы доставляет с извлечением валюты в других слоях)
+//нахера мне тут Optional, он только проблемы доставляет с извлечением валюты в других слоях)
 
 public class JdbcCurrencyDao implements CurrencyDao {
-    //This method is done
-
     /**
      * Метод для получения всех валют из таблицы Currencies,
      * для GET /currencies
@@ -38,18 +37,14 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 PreparedStatement stmt = connection.prepareStatement(sql)
         ) {
             ResultSet rs = stmt.executeQuery();
-
             while (rs.next()) {
                 currencies.add(getCurrencyFromResultSet(rs));
             }
-
         } catch (SQLException e) {
             throw new DatabaseUnavailableException("Database unavailable");
         }
         return currencies;
     }
-
-    //only todo 400 error
 
     /**
      * Метод для получения валюты по заданному коду.
@@ -61,17 +56,16 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<Currency> findByCode(String code) {
+    public Optional<Currency> findByCode(CurrencyDto currencyDto) {
         final String sql = """
                 SELECT *
                 FROM Currencies 
                 WHERE code = ?""";
-
         try (
                 Connection con = ConnectionManager.open();
                 PreparedStatement stmt = con.prepareStatement(sql);
         ) {
-            stmt.setString(1, code);
+            stmt.setString(1, currencyDto.getCode());
             ResultSet rs = stmt.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
             if (currency == null) {
@@ -83,8 +77,6 @@ public class JdbcCurrencyDao implements CurrencyDao {
         }
     }
 
-    //only todo 400 error
-
     /**
      * Метод для добавления в таблицу новой валюты,
      * для POST /currencies (code, name and sign передаются в теле запроса)
@@ -95,23 +87,20 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<Currency> save(Currency curr) {
-
+    public Optional<Currency> save(CurrencyDto currencyDto) {
         final String sql = """
                 INSERT INTO Currencies(code, full_name, sign)
                 VALUES (?, ?, ?)
                 RETURNING *""";
-
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql)
         ) {
-            statement.setString(1, curr.getCode());
-            statement.setString(2, curr.getName());
-            statement.setString(3, curr.getSign());
+            statement.setString(1, currencyDto.getCode());
+            statement.setString(2, currencyDto.getName());
+            statement.setString(3, currencyDto.getSign());
             ResultSet rs = statement.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
-
             return Optional.of(currency);
         } catch (SQLException ex) {
             if (ex instanceof SQLiteException sqLiteException) {
@@ -124,8 +113,6 @@ public class JdbcCurrencyDao implements CurrencyDao {
         }
     }
 
-    //only todo 400 error
-
     /**
      * HTTP коды ответов:
      * Успех - 201
@@ -134,12 +121,11 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<Currency> delete(Currency curr) {
+    public Optional<Currency> delete(CurrencyDto curr) {
         final String sql = """
                 DELETE FROM Currencies
                 WHERE code = ?
                 RETURNING *""";
-
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql)
@@ -156,8 +142,6 @@ public class JdbcCurrencyDao implements CurrencyDao {
         }
     }
 
-    //only todo 400 error
-
     /**
      * Метод для ExchangeRate
      * HTTP коды ответов:
@@ -167,7 +151,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<Currency> findById(Long id) {
+    public Optional<Currency> findById(Currency currencyInput) {
         final String sql = """
                 SELECT *
                 FROM Currencies 
@@ -176,11 +160,12 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 Connection con = ConnectionManager.open();
                 PreparedStatement stmt = con.prepareStatement(sql);
         ) {
-            stmt.setLong(1, id);
+            stmt.setLong(1, currencyInput.getId());
             ResultSet rs = stmt.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
             if (currency == null) {
-                throw new NotFoundException("Currency with id " + id + " not found");
+                throw new NotFoundException("Currency with id " + currencyInput.getId()
+                        + " not found");
             }
             return Optional.of(currency);
         } catch (SQLException e) {
@@ -194,7 +179,6 @@ public class JdbcCurrencyDao implements CurrencyDao {
             String code = rs.getString("code");
             String fullName = rs.getString("full_name");
             String sign = rs.getString("sign");
-
             if (code == null) {
                 return null;
             }

@@ -4,6 +4,7 @@ import Exceptions.DatabaseUnavailableException;
 import Exceptions.NotFoundException;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
+import dto.CurrencyDto;
 import utils.ConnectionManager;
 
 import java.sql.Connection;
@@ -25,12 +26,14 @@ public class CurrencyExchange {
 
     public CurrencyExchange(String startCodeCurrency, String endCodeCurrency) throws NotFoundException, DatabaseUnavailableException {
         JdbcCurrencyDao dao = new JdbcCurrencyDao();
+        CurrencyDto currencyDtoStart = new CurrencyDto(startCodeCurrency);
+        CurrencyDto currencyDtoEnd = new CurrencyDto(endCodeCurrency);
         idStartCurrency = dao
-                .findByCode(startCodeCurrency)
+                .findByCode(currencyDtoStart)
                 .orElseThrow()
                 .getId();
         idEndCurrency = dao
-                .findByCode(endCodeCurrency)
+                .findByCode(currencyDtoEnd)
                 .orElseThrow()
                 .getId();
     }
@@ -41,14 +44,12 @@ public class CurrencyExchange {
         if (idStartCurrency.equals(idEndCurrency)) {
             return 1;
         }
-
         String sql = """
                 SELECT rate
                 FROM ExchangeRates
                 WHERE base_currency_id = ?
                 and target_currency_id = ?
                 """;
-
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql);
@@ -78,13 +79,13 @@ public class CurrencyExchange {
         } catch (SQLException e) {
             throw new DatabaseUnavailableException("Database unavailable");
         }
-
         return answer;
     }
 
     private double transferWithIntermediateCurrency() {
         JdbcCurrencyDao dao = new JdbcCurrencyDao();
-        Currency currency = dao.findByCode("USD").orElseThrow();
+        CurrencyDto currencyDto = new CurrencyDto("USD");
+        Currency currency = dao.findByCode(currencyDto).orElseThrow();
         Long idUsd = currency.getId();
 
         double USDtoStart = jdbcExchangeRateDao

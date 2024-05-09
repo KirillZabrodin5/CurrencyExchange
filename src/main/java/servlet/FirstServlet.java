@@ -12,10 +12,7 @@ import java.io.PrintWriter;
 
 @WebServlet("/hello_world")
 public class FirstServlet extends HttpServlet {
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
@@ -24,24 +21,6 @@ public class FirstServlet extends HttpServlet {
         out.println("<h1>Hello, World!</h1>");
         out.println("<h2>Забродин Кирилл, МО-201</h2>");
         out.close();
-//        resp.setContentType("text/plain");
-//        resp.setCharacterEncoding("UTF-8");
-//
-//        //app.json больше нет в ресурсах, если понадобится, то создать заново
-//        var stream = FirstServlet.class.getResourceAsStream("/jsonCur.json");
-//
-//        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                resp.setContentType("text/html");
-//                resp.getWriter().write("\t" + line + "\n");
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
-    @Override
-    public void destroy() {
-        super.destroy();
-    }
+
 }

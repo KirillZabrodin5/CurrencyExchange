@@ -1,18 +1,13 @@
 package model;
 
 public class Currency {
-    private Long id = 0L;
-    private String code = "";
-    private String name = "";
-    private String sign = "";
+    private Long id = null;
+    private String code = null;
+    private String name = null;
+    private String sign = null;
 
-    public Currency() {
-    }
-
-    public Currency(String code, String name, String sign) {
-        this.code = code;
-        this.name = name;
-        this.sign = sign;
+    public Currency(Long id) {
+        this.id = id;
     }
 
     public Currency(Long id, String code, String name, String sign) {

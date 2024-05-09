@@ -6,7 +6,9 @@ import java.util.Optional;
 public interface CrudDao<T, C> {
     List<T> findAll();
 
-    Optional<T> save(T entity);
+    Optional<T> findByCode(C dto);
 
-    Optional<T> delete(T entity);
+    Optional<T> save(C entity);
+
+    Optional<T> delete(C entity);
 }
