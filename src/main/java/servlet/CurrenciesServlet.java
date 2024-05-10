@@ -31,14 +31,17 @@ public class CurrenciesServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json");
         try{
-            response.setCharacterEncoding("UTF-8");
-            response.setContentType("application/json");
             List<Currency> currencies = currencyDao.findAll();
-            mapper.writeValue(response.getWriter(), currencies);
+            String answer = mapper.writeValueAsString(currencies);
+            response.getWriter().write(answer);
         } catch (Exception e){
-            mapper.writeValue(response.getWriter(), e);
+            String message = e.getMessage();
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", message);
+            response.getWriter().write(json.toString());
         }
-
     }
 }
