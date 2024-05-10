@@ -3,6 +3,7 @@ package servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dao.CurrencyDao;
 import dao.JdbcCurrencyDao;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -17,35 +18,27 @@ import java.util.List;
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
-    private ObjectMapper mapper = null;
-    private JdbcCurrencyDao jdbcCurrencyDao = null;
+    private final ObjectMapper mapper = new ObjectMapper();
+    private CurrencyDao currencyDao = null;
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        mapper = new ObjectMapper();
-        jdbcCurrencyDao = new JdbcCurrencyDao();
+        currencyDao = new JdbcCurrencyDao();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json");
         try{
-            List<Currency> currencies = jdbcCurrencyDao.findAll();
-            String answer = mapper.writeValueAsString(currencies);
-            response.getWriter().write(answer);
-        } catch (Exception ex) {
-            String message = ex.getMessage();
-            ObjectNode json = mapper.createObjectNode();
-            json.put("message", message);
-            response.getWriter().write(json.toString());
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            List<Currency> currencies = currencyDao.findAll();
+            mapper.writeValue(response.getWriter(), currencies);
+        } catch (Exception e){
+            mapper.writeValue(response.getWriter(), e);
         }
-    }
 
-    @Override
-    public void destroy() {
-        super.destroy();
     }
 }
