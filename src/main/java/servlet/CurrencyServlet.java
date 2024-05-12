@@ -1,56 +1,68 @@
-//package servlet;
-//
-//import jakarta.servlet.ServletConfig;
-//import jakarta.servlet.ServletException;
-//import jakarta.servlet.annotation.WebServlet;
-//import jakarta.servlet.http.HttpServlet;
-//import jakarta.servlet.http.HttpServletRequest;
-//import jakarta.servlet.http.HttpServletResponse;
-//
-//import java.io.BufferedReader;
-//import java.io.IOException;
-//import java.io.InputStreamReader;
-//
-////GET /currency/EUR
-//@WebServlet("/currency/*")
-//public class CurrencyServlet extends HttpServlet {
-//
-//    @Override
-//    public void init(ServletConfig config) throws ServletException {
-//        super.init(config);
-//    }
-//
-//    @Override
-//    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-//        String path = req.getPathInfo();
-//        if (path == null) {
-//            path = path.substring(9);
-//        }
-//
-//        if (path.startsWith("/") && path.length() < 5) {
-//            String currencyCode = path.substring(1, path.length());
-//
-//            CurrencyDto currencyDTO = new CurrencyDto();
-//            //currencyDTO.getJsonCurrency(currencyCode);
-//
-//            resp.setCharacterEncoding("UTF-8");
-//            var stream = CurrenciesServlet.class.getResourceAsStream("jsonCurrency.json");
-//
-//            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-//                String line;
-//                while ((line = reader.readLine()) != null) {
-//                    resp.setContentType("application/json");
-//                    resp.getWriter().write(line);
-//                    resp.setStatus(200);
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
-//
-//    @Override
-//    public void destroy() {
-//        super.destroy();
-//    }
-//}
+package servlet;
+
+import Exceptions.DatabaseUnavailableException;
+import Exceptions.NotFoundException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import dao.CurrencyDao;
+import dao.JdbcCurrencyDao;
+import dto.CurrencyDto;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import model.Currency;
+import utils.ValidatorCode;
+
+import java.io.IOException;
+
+@WebServlet("/currency/*")
+public class CurrencyServlet extends HttpServlet {
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final CurrencyDao dao = new JdbcCurrencyDao();
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String path = req.getPathInfo();
+        String[] paths = path.split("/");
+        String codeCurrency = paths[paths.length - 1];
+        if (!ValidatorCode.isValid(codeCurrency)) {
+            ObjectNode json = mapper.createObjectNode();
+            String message = "Currency code missing at address";
+            json.put("message", message);
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json");
+        try{
+            Currency currency = dao.findByCode(new CurrencyDto(codeCurrency)).get();
+            String answer = mapper.writeValueAsString(currency);
+            resp.getWriter().write(answer);
+        } catch (Exception e){
+            String message = e.getMessage();
+            ObjectNode json = mapper.createObjectNode();
+            if (e instanceof DatabaseUnavailableException) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                return;
+            }
+            if (e instanceof NotFoundException) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+            json.put("message", message);
+            resp.getWriter().write(json.toString());
+        }
+    }
+}

@@ -10,7 +10,8 @@ public final class PropertiesUtil {
         loadProperties();
     }
 
-    private PropertiesUtil() {}
+    private PropertiesUtil() {
+    }
 
     public static String get(String key) {
         return PROPERTIES.getProperty(key);
