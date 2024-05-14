@@ -2,12 +2,16 @@ package servlet;
 
 import Exceptions.DatabaseUnavailableException;
 import Exceptions.EntityExistsException;
+import Exceptions.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dao.CurrencyDao;
+import dao.ExchangeRateDao;
 import dao.JdbcCurrencyDao;
+import dao.JdbcExchangeRateDao;
 import dto.CurrencyDto;
+import dto.ExchangeRateDto;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,15 +19,16 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Currency;
+import model.ExchangeRate;
 import utils.ValidatorCode;
 
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/currencies")
-public class CurrenciesServlet extends HttpServlet {
+@WebServlet("/exchangeRates")
+public class ExchangeRatesServlet extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
-    private final CurrencyDao currencyDao = new JdbcCurrencyDao();
+    private final ExchangeRateDao exchangeRateDao = new JdbcExchangeRateDao();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -37,8 +42,8 @@ public class CurrenciesServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
         try {
-            List<Currency> currencies = currencyDao.findAll();
-            String answer = mapper.writeValueAsString(currencies);
+            List<ExchangeRate> exchangeRates = exchangeRateDao.findAll();
+            String answer = mapper.writeValueAsString(exchangeRates);
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().write(answer);
         } catch (Exception e) {
@@ -54,20 +59,46 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String name = req.getParameter("name");
-        String code = req.getParameter("code");
-        String sign = req.getParameter("sign");
-        if (!ValidatorCode.isValid(code) || name == null || sign == null) {
+        String baseCurrencyCode = req.getParameter("baseCurrencyCode");
+        String targetCurrencyCode = req.getParameter("targetCurrencyCode");
+        String rate = req.getParameter("rate");
+        if (!ValidatorCode.isValid(baseCurrencyCode) || !ValidatorCode.isValid(targetCurrencyCode) || rate == null) {
             ObjectNode json = mapper.createObjectNode();
             json.put("message", "The required form field is present");
             resp.getWriter().write(json.toString());
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
-        CurrencyDto currencyDto = new CurrencyDto(code, name, sign);
-        Currency currency = null;
+        CurrencyDao currencyDao = new JdbcCurrencyDao();
+
+        CurrencyDto currencyDto = new CurrencyDto(baseCurrencyCode);
+        CurrencyDto currencyDto1 = new CurrencyDto(targetCurrencyCode);
+        Currency baseCurrency = null;
+        Currency targetCurrency = null;
         try {
-            currency = currencyDao.save(currencyDto).orElseThrow();
+            baseCurrency = currencyDao.findByCode(currencyDto).orElseThrow();
+            targetCurrency = currencyDao.findByCode(currencyDto1).orElseThrow();
+        } catch (Exception e) {
+            if (e instanceof NotFoundException) {
+                ObjectNode json = mapper.createObjectNode();
+                json.put("message", e.getMessage());
+                resp.getWriter().write(json.toString());
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+            if (e instanceof DatabaseUnavailableException) {
+                ObjectNode json = mapper.createObjectNode();
+                json.put("message", e.getMessage());
+                resp.getWriter().write(json.toString());
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                return;
+            }
+        }
+
+        ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency, Double.parseDouble(rate));
+        ExchangeRate exchangeRate = null;
+        try {
+            exchangeRate = exchangeRateDao.save(exchangeRateDto).orElseThrow();
         } catch (Exception e) {
             if (e instanceof DatabaseUnavailableException) {
                 ObjectNode json = mapper.createObjectNode();
@@ -87,6 +118,6 @@ public class CurrenciesServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json");
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        resp.getWriter().write(currency.toString());
+        resp.getWriter().write(exchangeRate.toString());
     }
 }

@@ -268,7 +268,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                     .orElse(null);
 
             Long id2 = resultSet.getLong(3);
-            Currency currencyTransit2 = new Currency(id1);
+            Currency currencyTransit2 = new Currency(id2);
             Currency currency2 = jdbcCurrencyDao.
                     findById(currencyTransit2)
                     .orElse(null);

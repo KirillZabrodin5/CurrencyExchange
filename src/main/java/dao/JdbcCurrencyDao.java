@@ -125,7 +125,10 @@ public class JdbcCurrencyDao implements CurrencyDao {
         final String sql = """
                 DELETE FROM Currencies
                 WHERE code = ?
-                RETURNING *""";
+                RETURNING *
+                UPDATE sqlite_sequence 
+                SET seq = (SELECT MAX(id) FROM Currencies)
+                WHERE name = 'Currencies';""";
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sql)
