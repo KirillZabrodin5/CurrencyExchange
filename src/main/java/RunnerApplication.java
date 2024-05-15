@@ -8,13 +8,8 @@ import java.util.List;
 
 public class RunnerApplication {
     public static void main(String[] args) throws JsonProcessingException {
-        JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
-        List<Currency> currencies = jdbcCurrencyDao.findAll();
+        String str = "jfdsjf";
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String answer = objectMapper.writeValueAsString(currencies);
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        System.out.println(answer);
+        System.out.println(str == null);
     }
 }

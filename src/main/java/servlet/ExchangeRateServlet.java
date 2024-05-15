@@ -57,18 +57,25 @@ public class ExchangeRateServlet extends HttpServlet {
             return;
         }
 
-        double rate;
-
-        //todo сделать анализ код ниже, почему rate не видит при паф запросе
-        try {
-            rate = Double.parseDouble(req.getParameter("rate"));
-        } catch (Exception e) {
-            ObjectNode json = mapper.createObjectNode();
-            String message = "The required field in the form was not found";
-            json.put("message", message);
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
+        StringBuilder body = new StringBuilder();
+        String line;
+        while ((line = req.getReader().readLine()) != null) {
+            body.append(line);
+        }
+        String postBody = body.toString();
+        String[] params = postBody.split("=");
+        double rate = 0.0;
+        if (params.length == 2 && params[0].equals("rate")) {
+            try {
+                rate = Double.parseDouble(params[1]);
+            } catch (NumberFormatException e) {
+                ObjectNode json = mapper.createObjectNode();
+                String message = "The required field in the form was not found";
+                json.put("message", message);
+                resp.getWriter().write(json.toString());
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
         }
 
         try {
