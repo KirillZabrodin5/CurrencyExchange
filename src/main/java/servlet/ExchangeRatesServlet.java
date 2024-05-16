@@ -49,11 +49,11 @@ public class ExchangeRatesServlet extends HttpServlet {
         } catch (Exception e) {
             String message = e.getMessage();
             ObjectNode json = mapper.createObjectNode();
+            json.put("message", message);
+            response.getWriter().write(json.toString());
             if (e instanceof DatabaseUnavailableException) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
-            json.put("message", message);
-            response.getWriter().write(json.toString());
         }
     }
 

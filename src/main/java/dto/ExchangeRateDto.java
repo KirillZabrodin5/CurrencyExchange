@@ -7,6 +7,11 @@ public class ExchangeRateDto {
     private Currency targetCurrency;
     private double rate;
 
+    public ExchangeRateDto(Currency baseCurrency, Currency targetCurrency) {
+        this.baseCurrency = baseCurrency;
+        this.targetCurrency = targetCurrency;
+    }
+
     public ExchangeRateDto(Currency baseCurrency, Currency targetCurrency, double rate) {
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;

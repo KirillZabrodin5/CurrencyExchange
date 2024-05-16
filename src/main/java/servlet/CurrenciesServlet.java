@@ -87,6 +87,8 @@ public class CurrenciesServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json");
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        resp.getWriter().write(currency.toString());
+        String answer = mapper.writeValueAsString(currency);
+        resp.setStatus(HttpServletResponse.SC_OK);
+        resp.getWriter().write(answer);
     }
 }
