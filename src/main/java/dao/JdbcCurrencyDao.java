@@ -176,18 +176,11 @@ public class JdbcCurrencyDao implements CurrencyDao {
         }
     }
 
-    private Currency getCurrencyFromResultSet(ResultSet rs) {
-        try {
-            Long id = rs.getLong("id");
-            String code = rs.getString("code");
-            String fullName = rs.getString("full_name");
-            String sign = rs.getString("sign");
-            if (code == null) {
-                return null;
-            }
-            return new Currency(id, code, fullName, sign);
-        } catch (SQLException e) {
-            throw new DatabaseUnavailableException("Database unavailable");
-        }
+    private Currency getCurrencyFromResultSet(ResultSet rs) throws SQLException {
+        Long id = rs.getLong("id");
+        String code = rs.getString("code");
+        String fullName = rs.getString("full_name");
+        String sign = rs.getString("sign");
+        return new Currency(id, code, fullName, sign);
     }
 }

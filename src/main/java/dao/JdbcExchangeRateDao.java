@@ -253,36 +253,33 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
         return rate;
     }
 
-    private ExchangeRate getExchangeRate(ResultSet resultSet) {
+    private ExchangeRate getExchangeRate(ResultSet resultSet) throws SQLException {
         JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
         ExchangeRate exchangeRate;
-        try {
-            Long id = resultSet.getLong(1);
-            if (id == 0L) {
-                throw new NotFoundException("Exchange Rate not found");
-            }
-            Long id1 = resultSet.getLong(2);
-            Currency currencyTransit1 = new Currency(id1);
-            Currency currency1 = jdbcCurrencyDao.
-                    findById(currencyTransit1)
-                    .orElse(null);
-
-            Long id2 = resultSet.getLong(3);
-            Currency currencyTransit2 = new Currency(id2);
-            Currency currency2 = jdbcCurrencyDao.
-                    findById(currencyTransit2)
-                    .orElse(null);
-
-            double rate = resultSet.getDouble(4);
-            exchangeRate = new ExchangeRate(
-                    id,
-                    currency1,
-                    currency2,
-                    rate
-            );
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        Long id = resultSet.getLong(1);
+        if (id == 0L) {
+            throw new NotFoundException("Exchange Rate not found");
         }
+        Long id1 = resultSet.getLong(2);
+        Currency currencyTransit1 = new Currency(id1);
+        Currency currency1 = jdbcCurrencyDao.
+                findById(currencyTransit1)
+                .orElse(null);
+
+        Long id2 = resultSet.getLong(3);
+        Currency currencyTransit2 = new Currency(id2);
+        Currency currency2 = jdbcCurrencyDao.
+                findById(currencyTransit2)
+                .orElse(null);
+
+        double rate = resultSet.getDouble(4);
+        exchangeRate = new ExchangeRate(
+                id,
+                currency1,
+                currency2,
+                rate
+        );
+
         return exchangeRate;
     }
 

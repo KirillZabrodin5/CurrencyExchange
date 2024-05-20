@@ -86,7 +86,46 @@ public class CurrenciesServlet extends HttpServlet {
         }
         resp.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json");
+        String answer = mapper.writeValueAsString(currency);
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        resp.getWriter().write(currency.toString());
+        resp.getWriter().write(answer);
+    }
+
+    //передается код в теле запроса
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String code = req.getParameter("code");
+        if (!ValidatorCode.isValid(code)) {
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", "The required form field is present");
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        CurrencyDto currencyDto = new CurrencyDto(code);
+        Currency currency = null;
+        try {
+            currency = currencyDao.delete(currencyDto).orElseThrow();
+        } catch (Exception e) {
+            if (e instanceof DatabaseUnavailableException) {
+                ObjectNode json = mapper.createObjectNode();
+                json.put("message", e.getMessage());
+                resp.getWriter().write(json.toString());
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                return;
+            }
+            if (e instanceof EntityExistsException) {
+                ObjectNode json = mapper.createObjectNode();
+                json.put("message", e.getMessage());
+                resp.getWriter().write(json.toString());
+                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                return;
+            }
+        }
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json");
+        String answer = mapper.writeValueAsString(currency);
+        resp.setStatus(HttpServletResponse.SC_CREATED);
+        resp.getWriter().write(answer);
     }
 }
