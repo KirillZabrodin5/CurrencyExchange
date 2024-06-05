@@ -148,7 +148,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
 
     @Override
     public Optional<ExchangeRate> delete(ExchangeRateDto exchangeRateDto) {
-        final String sqlQuery= """
+        final String sqlQuery = """
                 DELETE FROM ExchangeRate
                 WHERE base_currency_id = ? AND
                 target_currency_id = ?
@@ -256,7 +256,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
     private ExchangeRate getExchangeRate(ResultSet resultSet) throws SQLException {
         JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
         ExchangeRate exchangeRate;
-        Long id = resultSet.getLong(1);
+        long id = resultSet.getLong(1);
         if (id == 0L) {
             throw new NotFoundException("Exchange Rate not found");
         }

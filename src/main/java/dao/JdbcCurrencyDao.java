@@ -17,9 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-//этот класс норм написан, можно так оставить (не понимаю только
-//нахера мне тут Optional, он только проблемы доставляет с извлечением валюты в других слоях)
-
 public class JdbcCurrencyDao implements CurrencyDao {
     /**
      * Метод для получения всех валют из таблицы Currencies,
@@ -31,19 +28,19 @@ public class JdbcCurrencyDao implements CurrencyDao {
         final String sqlQuery = """
                 SELECT *
                 FROM Currencies""";
-        List<Currency> currencies = new ArrayList<>();
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement stmt = connection.prepareStatement(sqlQuery)
         ) {
+            List<Currency> currencies = new ArrayList<>();
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 currencies.add(getCurrencyFromResultSet(rs));
             }
+            return currencies;
         } catch (SQLException e) {
             throw new DatabaseUnavailableException("Database unavailable");
         }
-        return currencies;
     }
 
     /**
@@ -68,7 +65,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             stmt.setString(1, currencyDto.getCode());
             ResultSet rs = stmt.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
-            if (currency.getId() == 0) {
+            if (!rs.next()) {
                 throw new NotFoundException("Currency not found");
             }
             return Optional.of(currency);
@@ -136,7 +133,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             statement.setString(1, curr.getCode());
             ResultSet rs = statement.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
-            if (currency == null) {
+            if (!rs.next()) {
                 throw new NotFoundException("Currency with code " + curr.getCode() + " not found");
             }
             return Optional.of(currency);
@@ -166,7 +163,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             stmt.setLong(1, currencyInput.getId());
             ResultSet rs = stmt.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
-            if (currency == null) {
+            if (!rs.next()) {
                 throw new NotFoundException("Currency with id " + currencyInput.getId()
                         + " not found");
             }
