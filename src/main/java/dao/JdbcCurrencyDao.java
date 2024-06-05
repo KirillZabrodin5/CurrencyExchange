@@ -89,6 +89,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 INSERT INTO Currencies(code, full_name, sign)
                 VALUES (?, ?, ?)
                 RETURNING *""";
+
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sqlQuery)
@@ -125,7 +126,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 RETURNING *
                 UPDATE sqlite_sequence 
                 SET seq = (SELECT MAX(id) FROM Currencies)
-                WHERE name = 'Currencies';""";
+                WHERE name = 'Currencies'""";
         try (
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sqlQuery)

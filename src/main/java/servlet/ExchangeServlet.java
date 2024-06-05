@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import entities.Currency;
 import entities.CurrencyExchange;
 import service.TransferRoute;
-import utils.ValidatorCode;
+import utils.ValidationUtil;
 
 import java.io.IOException;
 
@@ -27,8 +27,8 @@ public class ExchangeServlet extends HttpServlet {
         String targetCurrencyCode = req.getParameter("to");
         String amountStr = req.getParameter("amount");
         double amountDouble = Double.parseDouble(amountStr);
-        if (!ValidatorCode.isValid(baseCurrencyCode)
-                || !ValidatorCode.isValid(targetCurrencyCode)
+        if (!ValidationUtil.validateCurrencyCode(baseCurrencyCode)
+                || !ValidationUtil.validateCurrencyCode(targetCurrencyCode)
                 || amountDouble <= 0) {
             ObjectNode json = mapper.createObjectNode();
             json.put("message", "The required form field is present");

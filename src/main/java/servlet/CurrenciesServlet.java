@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import entities.Currency;
-import utils.ValidatorCode;
+import utils.ValidationUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,7 +58,7 @@ public class CurrenciesServlet extends HttpServlet {
         String name = req.getParameter("name");
         String code = req.getParameter("code");
         String sign = req.getParameter("sign");
-        if (!ValidatorCode.isValid(code) || name == null || sign == null) {
+        if (!ValidationUtil.validateCurrencyCode(code) || name == null || sign == null) {
             ObjectNode json = mapper.createObjectNode();
             json.put("message", "The required form field is present");
             resp.getWriter().write(json.toString());
@@ -95,7 +95,7 @@ public class CurrenciesServlet extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String code = req.getParameter("code");
-        if (!ValidatorCode.isValid(code)) { // эта проверка в нужном слое находится
+        if (!ValidationUtil.validateCurrencyCode(code)) { // эта проверка в нужном слое находится
             ObjectNode json = mapper.createObjectNode();
             json.put("message", "The required form field is present");
             resp.getWriter().write(json.toString());

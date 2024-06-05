@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import entities.Currency;
 import entities.ExchangeRate;
-import utils.ValidatorCode;
+import utils.ValidationUtil;
 
 import java.io.IOException;
 
@@ -57,7 +57,7 @@ public class ExchangeRateServlet extends HttpServlet {
             }
         }
 
-        if (!ValidatorCode.isValid(baseCodeCurrency) || !ValidatorCode.isValid(targetCodeCurrency)) {
+        if (!ValidationUtil.validateCurrencyCode(baseCodeCurrency) || !ValidationUtil.validateCurrencyCode(targetCodeCurrency)) {
             ObjectNode json = mapper.createObjectNode();
             String message = "The currency code is missing";
             json.put("message", message);
@@ -108,7 +108,7 @@ public class ExchangeRateServlet extends HttpServlet {
         String baseCodeCurrency = codeCurrency.substring(0, 3);
         String targetCodeCurrency = codeCurrency.substring(3, 6);
 
-        if (!ValidatorCode.isValid(baseCodeCurrency) || !ValidatorCode.isValid(targetCodeCurrency)) {
+        if (!ValidationUtil.validateCurrencyCode(baseCodeCurrency) || !ValidationUtil.validateCurrencyCode(targetCodeCurrency)) {
             ObjectNode json = mapper.createObjectNode();
             String message = "Currency code not found";
             json.put("message", message);

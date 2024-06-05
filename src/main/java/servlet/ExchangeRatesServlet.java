@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import entities.Currency;
 import entities.ExchangeRate;
-import utils.ValidatorCode;
+import utils.ValidationUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -63,8 +63,8 @@ public class ExchangeRatesServlet extends HttpServlet {
         String baseCurrencyCode = req.getParameter("baseCurrencyCode");
         String targetCurrencyCode = req.getParameter("targetCurrencyCode");
         String rate = req.getParameter("rate");
-        if (!ValidatorCode.isValid(baseCurrencyCode)
-                || !ValidatorCode.isValid(targetCurrencyCode)
+        if (!ValidationUtil.validateCurrencyCode(baseCurrencyCode)
+                || !ValidationUtil.validateCurrencyCode(targetCurrencyCode)
                 || rate == null) {
             ObjectNode json = mapper.createObjectNode();
             json.put("message", "The required form field is present");
