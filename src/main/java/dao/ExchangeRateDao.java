@@ -1,7 +1,7 @@
 package dao;
 
 import dto.ExchangeRateDto;
-import model.ExchangeRate;
+import entities.ExchangeRate;
 
 import java.util.Optional;
 

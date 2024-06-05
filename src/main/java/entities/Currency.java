@@ -1,18 +1,21 @@
-package dto;
+package entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
-@Getter
 @Setter
+@Getter
 @AllArgsConstructor
-public class CurrencyDto {
+@ToString()
+public class Currency {
+    private Long id = null;
     private String code = null;
     private String name = null;
     private String sign = null;
 
-    public CurrencyDto(String code) {
-        this.code = code;
+    public Currency(Long id) {
+        this.id = id;
     }
 }

@@ -4,7 +4,7 @@ import Exceptions.DatabaseUnavailableException;
 import Exceptions.EntityExistsException;
 import Exceptions.NotFoundException;
 import dto.CurrencyDto;
-import model.Currency;
+import entities.Currency;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 import utils.ConnectionManager;
@@ -28,13 +28,13 @@ public class JdbcCurrencyDao implements CurrencyDao {
      */
     @Override
     public List<Currency> findAll() {
-        final String sql = """
+        final String sqlQuery = """
                 SELECT *
                 FROM Currencies""";
         List<Currency> currencies = new ArrayList<>();
         try (
                 Connection connection = ConnectionManager.open();
-                PreparedStatement stmt = connection.prepareStatement(sql)
+                PreparedStatement stmt = connection.prepareStatement(sqlQuery)
         ) {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
@@ -57,13 +57,13 @@ public class JdbcCurrencyDao implements CurrencyDao {
      */
     @Override
     public Optional<Currency> findByCode(CurrencyDto currencyDto) {
-        final String sql = """
+        final String sqlQuery = """
                 SELECT *
                 FROM Currencies 
                 WHERE code = ?""";
         try (
                 Connection con = ConnectionManager.open();
-                PreparedStatement stmt = con.prepareStatement(sql);
+                PreparedStatement stmt = con.prepareStatement(sqlQuery);
         ) {
             stmt.setString(1, currencyDto.getCode());
             ResultSet rs = stmt.executeQuery();
@@ -88,13 +88,13 @@ public class JdbcCurrencyDao implements CurrencyDao {
      */
     @Override
     public Optional<Currency> save(CurrencyDto currencyDto) {
-        final String sql = """
+        final String sqlQuery = """
                 INSERT INTO Currencies(code, full_name, sign)
                 VALUES (?, ?, ?)
                 RETURNING *""";
         try (
                 Connection connection = ConnectionManager.open();
-                PreparedStatement statement = connection.prepareStatement(sql)
+                PreparedStatement statement = connection.prepareStatement(sqlQuery)
         ) {
             statement.setString(1, currencyDto.getCode());
             statement.setString(2, currencyDto.getName());
@@ -122,7 +122,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
      */
     @Override
     public Optional<Currency> delete(CurrencyDto curr) {
-        final String sql = """
+        final String sqlQuery = """
                 DELETE FROM Currencies
                 WHERE code = ?
                 RETURNING *
@@ -131,7 +131,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 WHERE name = 'Currencies';""";
         try (
                 Connection connection = ConnectionManager.open();
-                PreparedStatement statement = connection.prepareStatement(sql)
+                PreparedStatement statement = connection.prepareStatement(sqlQuery)
         ) {
             statement.setString(1, curr.getCode());
             ResultSet rs = statement.executeQuery();
@@ -155,13 +155,13 @@ public class JdbcCurrencyDao implements CurrencyDao {
      */
     @Override
     public Optional<Currency> findById(Currency currencyInput) {
-        final String sql = """
+        final String sqlQuery = """
                 SELECT *
                 FROM Currencies 
                 WHERE id = ?""";
         try (
                 Connection con = ConnectionManager.open();
-                PreparedStatement stmt = con.prepareStatement(sql);
+                PreparedStatement stmt = con.prepareStatement(sqlQuery);
         ) {
             stmt.setLong(1, currencyInput.getId());
             ResultSet rs = stmt.executeQuery();

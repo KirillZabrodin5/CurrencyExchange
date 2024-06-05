@@ -10,8 +10,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.Currency;
-import model.CurrencyExchange;
+import entities.Currency;
+import entities.CurrencyExchange;
 import service.TransferRoute;
 import utils.ValidatorCode;
 

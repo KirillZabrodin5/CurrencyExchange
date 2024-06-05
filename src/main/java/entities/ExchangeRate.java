@@ -1,20 +1,21 @@
-package dto;
+package entities;
 
-import entities.Currency;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@ToString
+@NoArgsConstructor
 @AllArgsConstructor
-public class ExchangeRateDto {
+public class ExchangeRate {
+    private Long id;
     private Currency baseCurrency;
     private Currency targetCurrency;
     private double rate;
 
-    public ExchangeRateDto(Currency baseCurrency, Currency targetCurrency) {
+    public ExchangeRate(Currency baseCurrency, Currency targetCurrency, double rate) {
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
+        this.rate = rate;
     }
 }

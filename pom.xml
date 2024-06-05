@@ -48,7 +48,6 @@
         </dependency>
 
 
-
         <!-- sqlite-jdbc -->
         <dependency>
             <groupId>org.xerial</groupId>
@@ -69,6 +68,15 @@
             <artifactId>logback-classic</artifactId>
             <version>1.5.3</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.32</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -78,7 +86,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.4.0</version>
             </plugin>
-
         </plugins>
+
     </build>
 </project>

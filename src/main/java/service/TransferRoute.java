@@ -5,7 +5,7 @@ import Exceptions.NotFoundException;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
 import dto.CurrencyDto;
-import model.Currency;
+import entities.Currency;
 
 /**
  * Класс для определения, существует ли прямой маршрут перевода,
