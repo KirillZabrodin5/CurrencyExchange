@@ -68,7 +68,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             stmt.setString(1, currencyDto.getCode());
             ResultSet rs = stmt.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
-            if (currency == null) {
+            if (currency.getId() == 0) {
                 throw new NotFoundException("Currency not found");
             }
             return Optional.of(currency);

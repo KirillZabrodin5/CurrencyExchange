@@ -44,11 +44,12 @@ public class CurrenciesServlet extends HttpServlet {
         } catch (Exception e) {
             String message = e.getMessage();
             ObjectNode json = mapper.createObjectNode();
+            json.put("message", message);
+            response.getWriter().write(json.toString());
             if (e instanceof DatabaseUnavailableException) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
-            json.put("message", message);
-            response.getWriter().write(json.toString());
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
@@ -75,8 +76,7 @@ public class CurrenciesServlet extends HttpServlet {
                 resp.getWriter().write(json.toString());
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 return;
-            }
-            if (e instanceof EntityExistsException) {
+            } else if (e instanceof EntityExistsException) {
                 ObjectNode json = mapper.createObjectNode();
                 json.put("message", e.getMessage());
                 resp.getWriter().write(json.toString());
@@ -93,9 +93,9 @@ public class CurrenciesServlet extends HttpServlet {
 
     //передается код в теле запроса
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String code = req.getParameter("code");
-        if (!ValidatorCode.isValid(code)) {
+        if (!ValidatorCode.isValid(code)) { // эта проверка в нужном слое находится
             ObjectNode json = mapper.createObjectNode();
             json.put("message", "The required form field is present");
             resp.getWriter().write(json.toString());
@@ -113,8 +113,7 @@ public class CurrenciesServlet extends HttpServlet {
                 resp.getWriter().write(json.toString());
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 return;
-            }
-            if (e instanceof EntityExistsException) {
+            } else if (e instanceof EntityExistsException) {
                 ObjectNode json = mapper.createObjectNode();
                 json.put("message", e.getMessage());
                 resp.getWriter().write(json.toString());

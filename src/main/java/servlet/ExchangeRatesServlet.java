@@ -49,11 +49,12 @@ public class ExchangeRatesServlet extends HttpServlet {
         } catch (Exception e) {
             String message = e.getMessage();
             ObjectNode json = mapper.createObjectNode();
+            json.put("message", message);
             if (e instanceof DatabaseUnavailableException) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
-            json.put("message", message);
             response.getWriter().write(json.toString());
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
@@ -62,7 +63,9 @@ public class ExchangeRatesServlet extends HttpServlet {
         String baseCurrencyCode = req.getParameter("baseCurrencyCode");
         String targetCurrencyCode = req.getParameter("targetCurrencyCode");
         String rate = req.getParameter("rate");
-        if (!ValidatorCode.isValid(baseCurrencyCode) || !ValidatorCode.isValid(targetCurrencyCode) || rate == null) {
+        if (!ValidatorCode.isValid(baseCurrencyCode)
+                || !ValidatorCode.isValid(targetCurrencyCode)
+                || rate == null) {
             ObjectNode json = mapper.createObjectNode();
             json.put("message", "The required form field is present");
             resp.getWriter().write(json.toString());
@@ -71,53 +74,48 @@ public class ExchangeRatesServlet extends HttpServlet {
         }
         CurrencyDao currencyDao = new JdbcCurrencyDao();
 
-        CurrencyDto currencyDto = new CurrencyDto(baseCurrencyCode);
-        CurrencyDto currencyDto1 = new CurrencyDto(targetCurrencyCode);
+        CurrencyDto baseCurrencyDto = new CurrencyDto(baseCurrencyCode);
+        CurrencyDto targetCurrencyDto = new CurrencyDto(targetCurrencyCode);
         Currency baseCurrency = null;
         Currency targetCurrency = null;
         try {
-            baseCurrency = currencyDao.findByCode(currencyDto).orElseThrow();
-            targetCurrency = currencyDao.findByCode(currencyDto1).orElseThrow();
-        } catch (Exception e) {
-            if (e instanceof NotFoundException) {
-                ObjectNode json = mapper.createObjectNode();
-                json.put("message", e.getMessage());
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                return;
-            }
-            if (e instanceof DatabaseUnavailableException) {
-                ObjectNode json = mapper.createObjectNode();
-                json.put("message", e.getMessage());
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                return;
-            }
+            baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
+            targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
+        } catch (NotFoundException e) {
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", e.getMessage());
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        } catch (DatabaseUnavailableException e) {
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", e.getMessage());
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
         }
 
         ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency, Double.parseDouble(rate));
         ExchangeRate exchangeRate = null;
         try {
             exchangeRate = exchangeRateDao.save(exchangeRateDto).orElseThrow();
-        } catch (Exception e) {
-            if (e instanceof DatabaseUnavailableException) {
-                ObjectNode json = mapper.createObjectNode();
-                json.put("message", e.getMessage());
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                return;
-            }
-            if (e instanceof EntityExistsException) {
-                ObjectNode json = mapper.createObjectNode();
-                json.put("message", e.getMessage());
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                return;
-            }
+        } catch (DatabaseUnavailableException e) {
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", e.getMessage());
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
+        } catch (EntityExistsException e) {
+            ObjectNode json = mapper.createObjectNode();
+            json.put("message", e.getMessage());
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_CONFLICT);
+            return;
         }
         resp.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json");
+        String answer = mapper.writeValueAsString(exchangeRate);
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        resp.getWriter().write(exchangeRate.toString());
+        resp.getWriter().write(answer);
     }
 }

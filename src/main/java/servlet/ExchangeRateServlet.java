@@ -30,12 +30,64 @@ public class ExchangeRateServlet extends HttpServlet {
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String method = request.getMethod();
-        if (method.equalsIgnoreCase("PATCH")) {
+        if (method.equals("PATCH")) {
             doPatch(request, response);
-        }
-        else {
+        } else {
             super.service(request, response);
         }
+    }
+
+    //TODO метод GET
+    @Override
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json");
+
+        String path = req.getPathInfo();
+        String[] paths = path.split("/");
+
+        String codeCurrency = null;
+        String baseCodeCurrency = null;
+        String targetCodeCurrency = null;
+        if (paths.length != 0) {
+            codeCurrency = paths[paths.length - 1];
+            if (codeCurrency.length() == 6) {
+                baseCodeCurrency = codeCurrency.substring(0, 3);
+                targetCodeCurrency = codeCurrency.substring(3, 6);
+            }
+        }
+
+        if (!ValidatorCode.isValid(baseCodeCurrency) || !ValidatorCode.isValid(targetCodeCurrency)) {
+            ObjectNode json = mapper.createObjectNode();
+            String message = "The currency code is missing";
+            json.put("message", message);
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+
+        try {
+            CurrencyDto baseCurrencyDto = new CurrencyDto(baseCodeCurrency);
+            CurrencyDto targetCurrencyDto = new CurrencyDto(targetCodeCurrency);
+            Currency baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
+            Currency targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
+
+            ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency);
+            ExchangeRate exchangeRate = exchangeRateDao.findByCode(exchangeRateDto).orElseThrow();
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().write(mapper.writeValueAsString(exchangeRate));
+        } catch (Exception ex) {
+            ObjectNode json = mapper.createObjectNode();
+            String message = ex.getMessage();
+            if (ex instanceof NotFoundException) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                message = "Exchange rate not found";
+            }
+            json.put("message", message);
+            resp.getWriter().write(json.toString());
+        }
+
     }
 
     public void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -45,6 +97,14 @@ public class ExchangeRateServlet extends HttpServlet {
         String path = req.getPathInfo();
         String[] paths = path.split("/");
         String codeCurrency = paths[paths.length - 1];
+        if (codeCurrency.length() != 6) {
+            ObjectNode json = mapper.createObjectNode();
+            String message = "The required form field is present";
+            json.put("message", message);
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
         String baseCodeCurrency = codeCurrency.substring(0, 3);
         String targetCodeCurrency = codeCurrency.substring(3, 6);
 
@@ -66,16 +126,14 @@ public class ExchangeRateServlet extends HttpServlet {
         String[] params = postBody.split("=");
         double rate = 0.0;
         if (params.length == 2 && params[0].equals("rate")) {
-            try {
-                rate = Double.parseDouble(params[1]);
-            } catch (NumberFormatException e) {
-                ObjectNode json = mapper.createObjectNode();
-                String message = "The required field in the form was not found";
-                json.put("message", message);
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
+            rate = Double.parseDouble(params[1]);
+        } else {
+            ObjectNode json = mapper.createObjectNode();
+            String message = "The required field in the form was not found";
+            json.put("message", message);
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
         }
 
         try {
@@ -88,21 +146,22 @@ public class ExchangeRateServlet extends HttpServlet {
             ExchangeRate exchangeRate = exchangeRateDao.update(exchangeRateDto).orElseThrow();
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.getWriter().write(mapper.writeValueAsString(exchangeRate));
-        } catch (Exception e) {
-            if (e instanceof NotFoundException) {
-                ObjectNode json = mapper.createObjectNode();
-                String message = e.getMessage();
-                json.put("message", message);
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            } else if (e instanceof DatabaseUnavailableException) {
-                ObjectNode json = mapper.createObjectNode();
-                String message = e.getMessage();
-                json.put("message", message);
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-        }
+        } catch (NotFoundException e) {
 
+            ObjectNode json = mapper.createObjectNode();
+            String message = "Exchange rate not found";
+            json.put("message", message);
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
+        } catch (DatabaseUnavailableException e) {
+
+            ObjectNode json = mapper.createObjectNode();
+            String message = e.getMessage();
+            json.put("message", message);
+            resp.getWriter().write(json.toString());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+
+        }
     }
 }
