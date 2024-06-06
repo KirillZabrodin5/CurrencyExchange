@@ -1,20 +1,17 @@
 package servlet;
 
-import Exceptions.DatabaseUnavailableException;
-import Exceptions.EntityExistsException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import dao.CurrencyDao;
 import dao.JdbcCurrencyDao;
 import dto.CurrencyDto;
+import entities.Currency;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import entities.Currency;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -34,23 +31,9 @@ public class CurrenciesServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json");
-        try {
-            List<Currency> currencies = currencyDao.findAll();
-            String answer = mapper.writeValueAsString(currencies);
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write(answer);
-        } catch (Exception e) {
-            String message = e.getMessage();
-            ObjectNode json = mapper.createObjectNode();
-            json.put("message", message);
-            response.getWriter().write(json.toString());
-            if (e instanceof DatabaseUnavailableException) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            }
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        }
+        List<Currency> currencies = currencyDao.findAll();
+        mapper.writeValue(response.getWriter(), currencies);
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
     @Override
@@ -58,73 +41,23 @@ public class CurrenciesServlet extends HttpServlet {
         String name = req.getParameter("name");
         String code = req.getParameter("code");
         String sign = req.getParameter("sign");
-        if (!ValidationUtil.validateCurrencyCode(code) || name == null || sign == null) {
-            ObjectNode json = mapper.createObjectNode();
-            json.put("message", "The required form field is present");
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
         CurrencyDto currencyDto = new CurrencyDto(code, name, sign);
-        Currency currency = null;
-        try {
-            currency = currencyDao.save(currencyDto).orElseThrow();
-        } catch (Exception e) {
-            if (e instanceof DatabaseUnavailableException) {
-                ObjectNode json = mapper.createObjectNode();
-                json.put("message", e.getMessage());
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                return;
-            } else if (e instanceof EntityExistsException) {
-                ObjectNode json = mapper.createObjectNode();
-                json.put("message", e.getMessage());
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                return;
-            }
-        }
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-        String answer = mapper.writeValueAsString(currency);
+        ValidationUtil.validateCurrencyDto(currencyDto);
+
+        Currency currency = currencyDao.save(currencyDto).orElseThrow();
+        mapper.writeValue(resp.getWriter(), currency);
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        resp.getWriter().write(answer);
     }
 
-    //передается код в теле запроса
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String code = req.getParameter("code");
-        if (!ValidationUtil.validateCurrencyCode(code)) { // эта проверка в нужном слое находится
-            ObjectNode json = mapper.createObjectNode();
-            json.put("message", "The required form field is present");
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
+        ValidationUtil.validateCurrencyCode(code);
+
         CurrencyDto currencyDto = new CurrencyDto(code);
-        Currency currency = null;
-        try {
-            currency = currencyDao.delete(currencyDto).orElseThrow();
-        } catch (Exception e) {
-            if (e instanceof DatabaseUnavailableException) {
-                ObjectNode json = mapper.createObjectNode();
-                json.put("message", e.getMessage());
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                return;
-            } else if (e instanceof EntityExistsException) {
-                ObjectNode json = mapper.createObjectNode();
-                json.put("message", e.getMessage());
-                resp.getWriter().write(json.toString());
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                return;
-            }
-        }
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-        String answer = mapper.writeValueAsString(currency);
+        Currency currency = currencyDao.delete(currencyDto).orElseThrow();
+
+        mapper.writeValue(resp.getWriter(), currency);
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        resp.getWriter().write(answer);
     }
 }

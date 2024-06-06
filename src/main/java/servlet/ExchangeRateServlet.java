@@ -1,22 +1,20 @@
 package servlet;
 
-import Exceptions.DatabaseUnavailableException;
-import Exceptions.NotFoundException;
+import Exceptions.InvalidParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import dao.CurrencyDao;
 import dao.ExchangeRateDao;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
 import dto.CurrencyDto;
 import dto.ExchangeRateDto;
+import entities.Currency;
+import entities.ExchangeRate;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import entities.Currency;
-import entities.ExchangeRate;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -37,85 +35,41 @@ public class ExchangeRateServlet extends HttpServlet {
         }
     }
 
-    //TODO метод GET
     @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-
-        String path = req.getPathInfo();
-        String[] paths = path.split("/");
-
-        String codeCurrency = null;
-        String baseCodeCurrency = null;
-        String targetCodeCurrency = null;
-        if (paths.length != 0) {
-            codeCurrency = paths[paths.length - 1];
-            if (codeCurrency.length() == 6) {
-                baseCodeCurrency = codeCurrency.substring(0, 3);
-                targetCodeCurrency = codeCurrency.substring(3, 6);
-            }
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String path = req.getPathInfo().replaceFirst("/", "");
+        if (path.length() != 6) {
+            throw new InvalidParameterException("Currency codes are missing in the URL");
         }
 
-        if (!ValidationUtil.validateCurrencyCode(baseCodeCurrency) || !ValidationUtil.validateCurrencyCode(targetCodeCurrency)) {
-            ObjectNode json = mapper.createObjectNode();
-            String message = "The currency code is missing";
-            json.put("message", message);
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
+        String baseCodeCurrency = path.substring(0, 3);
+        String targetCodeCurrency = path.substring(3, 6);
 
+        ValidationUtil.validateCurrencyCode(baseCodeCurrency);
+        ValidationUtil.validateCurrencyCode(targetCodeCurrency);
 
-        try {
-            CurrencyDto baseCurrencyDto = new CurrencyDto(baseCodeCurrency);
-            CurrencyDto targetCurrencyDto = new CurrencyDto(targetCodeCurrency);
-            Currency baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
-            Currency targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
+        CurrencyDto baseCurrencyDto = new CurrencyDto(baseCodeCurrency);
+        CurrencyDto targetCurrencyDto = new CurrencyDto(targetCodeCurrency);
+        Currency baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
+        Currency targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
 
-            ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency);
-            ExchangeRate exchangeRate = exchangeRateDao.findByCode(exchangeRateDto).orElseThrow();
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write(mapper.writeValueAsString(exchangeRate));
-        } catch (Exception ex) {
-            ObjectNode json = mapper.createObjectNode();
-            String message = ex.getMessage();
-            if (ex instanceof NotFoundException) {
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                message = "Exchange rate not found";
-            }
-            json.put("message", message);
-            resp.getWriter().write(json.toString());
-        }
-
+        ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency);
+        ExchangeRate exchangeRate = exchangeRateDao.findByCode(exchangeRateDto).orElseThrow();
+        resp.setStatus(HttpServletResponse.SC_OK);
+        mapper.writeValue(resp.getWriter(), exchangeRate);
     }
 
     public void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-
-        String path = req.getPathInfo();
-        String[] paths = path.split("/");
-        String codeCurrency = paths[paths.length - 1];
-        if (codeCurrency.length() != 6) {
-            ObjectNode json = mapper.createObjectNode();
-            String message = "The required form field is present";
-            json.put("message", message);
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
+        String path = req.getPathInfo().replaceFirst("/", "");
+        if (path.length() != 6) {
+            throw new InvalidParameterException("Currency codes are missing in the URL");
         }
-        String baseCodeCurrency = codeCurrency.substring(0, 3);
-        String targetCodeCurrency = codeCurrency.substring(3, 6);
 
-        if (!ValidationUtil.validateCurrencyCode(baseCodeCurrency) || !ValidationUtil.validateCurrencyCode(targetCodeCurrency)) {
-            ObjectNode json = mapper.createObjectNode();
-            String message = "Currency code not found";
-            json.put("message", message);
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
+        String baseCodeCurrency = path.substring(0, 3);
+        String targetCodeCurrency = path.substring(3, 6);
+
+        ValidationUtil.validateCurrencyCode(baseCodeCurrency);
+        ValidationUtil.validateCurrencyCode(targetCodeCurrency);
 
         StringBuilder body = new StringBuilder();
         String line;
@@ -124,44 +78,21 @@ public class ExchangeRateServlet extends HttpServlet {
         }
         String postBody = body.toString();
         String[] params = postBody.split("=");
-        double rate = 0.0;
+        double rate;
         if (params.length == 2 && params[0].equals("rate")) {
             rate = Double.parseDouble(params[1]);
         } else {
-            ObjectNode json = mapper.createObjectNode();
-            String message = "The required field in the form was not found";
-            json.put("message", message);
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
+            throw new InvalidParameterException("Rate is not valid");
         }
 
-        try {
-            CurrencyDto baseCurrencyDto = new CurrencyDto(baseCodeCurrency);
-            CurrencyDto targetCurrencyDto = new CurrencyDto(targetCodeCurrency);
-            Currency baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
-            Currency targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
+        CurrencyDto baseCurrencyDto = new CurrencyDto(baseCodeCurrency);
+        CurrencyDto targetCurrencyDto = new CurrencyDto(targetCodeCurrency);
+        Currency baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
+        Currency targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
 
-            ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency, rate);
-            ExchangeRate exchangeRate = exchangeRateDao.update(exchangeRateDto).orElseThrow();
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write(mapper.writeValueAsString(exchangeRate));
-        } catch (NotFoundException e) {
-
-            ObjectNode json = mapper.createObjectNode();
-            String message = "Exchange rate not found";
-            json.put("message", message);
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-
-        } catch (DatabaseUnavailableException e) {
-
-            ObjectNode json = mapper.createObjectNode();
-            String message = e.getMessage();
-            json.put("message", message);
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-
-        }
+        ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency, rate);
+        ExchangeRate exchangeRate = exchangeRateDao.update(exchangeRateDto).orElseThrow();
+        resp.setStatus(HttpServletResponse.SC_OK);
+        mapper.writeValue(resp.getWriter(), exchangeRate);
     }
 }

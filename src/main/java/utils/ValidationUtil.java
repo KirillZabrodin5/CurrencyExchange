@@ -2,13 +2,30 @@ package utils;
 
 import Exceptions.InvalidParameterException;
 import dto.CurrencyDto;
+import dto.CurrencyExchangeDto;
 
 import java.util.Currency;
 import java.util.Set;
 
 public class ValidationUtil {
     public static void validateCurrencyDto(CurrencyDto currencyDto) {
+        validateCurrencyCode(currencyDto.getCode());
 
+        if (currencyDto.getName() == null) {
+            throw new InvalidParameterException("Name is null");
+        }
+
+        if (currencyDto.getCode() == null) {
+            throw new InvalidParameterException("Code is null");
+        }
+    }
+
+    public static void validateCurrencyExchangeDto(CurrencyExchangeDto currencyExchangeDto) {
+        validateCurrencyCode(currencyExchangeDto.getBaseCurrencyCode());
+        validateCurrencyCode(currencyExchangeDto.getTargetCurrencyCode());
+        if (currencyExchangeDto.getAmount() <= 0) {
+            throw new InvalidParameterException("Amount must be greater than 0");
+        }
     }
 
     public static void validateCurrencyCode(String code) {

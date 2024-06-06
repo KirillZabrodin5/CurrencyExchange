@@ -2,16 +2,18 @@ package servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import dao.CurrencyDao;
 import dao.JdbcCurrencyDao;
 import dto.CurrencyDto;
+import dto.CurrencyExchangeDto;
+import entities.Currency;
+import entities.CurrencyExchange;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import entities.Currency;
-import entities.CurrencyExchange;
 import service.TransferRoute;
 import utils.ValidationUtil;
 
@@ -21,35 +23,26 @@ import java.io.IOException;
 public class ExchangeServlet extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
     private final CurrencyDao currencyDao = new JdbcCurrencyDao();
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+    }
+
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String baseCurrencyCode = req.getParameter("from");
         String targetCurrencyCode = req.getParameter("to");
         String amountStr = req.getParameter("amount");
         double amountDouble = Double.parseDouble(amountStr);
-        if (!ValidationUtil.validateCurrencyCode(baseCurrencyCode)
-                || !ValidationUtil.validateCurrencyCode(targetCurrencyCode)
-                || amountDouble <= 0) {
-            ObjectNode json = mapper.createObjectNode();
-            json.put("message", "The required form field is present");
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
+        CurrencyExchangeDto currencyExchangeDto =
+                new CurrencyExchangeDto(baseCurrencyCode, targetCurrencyCode, amountDouble);
+        ValidationUtil.validateCurrencyExchangeDto(currencyExchangeDto);
 
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        try {
-            CurrencyExchange helper = getCurrencyExchange(baseCurrencyCode, targetCurrencyCode, amountDouble);
-            String answer = mapper.writeValueAsString(helper);
-            resp.getWriter().write(answer);
-            resp.setStatus(HttpServletResponse.SC_OK);
-        } catch (Exception e) {
-            String message = e.getMessage();
-            ObjectNode json = mapper.createObjectNode();
-            json.put("message", message);
-            resp.getWriter().write(json.toString());
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
+        CurrencyExchange currencyExchange = getCurrencyExchange(baseCurrencyCode, targetCurrencyCode, amountDouble);
+        mapper.writeValue(resp.getWriter(), currencyExchange);
+        resp.setStatus(HttpServletResponse.SC_OK);
     }
 
     private CurrencyExchange getCurrencyExchange(String baseCode, String targetCode, double amount) {
