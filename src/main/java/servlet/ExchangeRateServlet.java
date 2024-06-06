@@ -6,7 +6,6 @@ import dao.CurrencyDao;
 import dao.ExchangeRateDao;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
-import dto.CurrencyDto;
 import dto.ExchangeRateDto;
 import entities.Currency;
 import entities.ExchangeRate;
@@ -15,6 +14,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.ConverterCurrencyUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -24,6 +24,7 @@ public class ExchangeRateServlet extends HttpServlet {
     private static final ObjectMapper mapper = new ObjectMapper();
     public static final CurrencyDao currencyDao = new JdbcCurrencyDao();
     public static final ExchangeRateDao exchangeRateDao = new JdbcExchangeRateDao();
+    private static final ConverterCurrencyUtil CONVERTER_CURRENCY_UTIL = new ConverterCurrencyUtil();
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -48,13 +49,7 @@ public class ExchangeRateServlet extends HttpServlet {
         ValidationUtil.validateCurrencyCode(baseCodeCurrency);
         ValidationUtil.validateCurrencyCode(targetCodeCurrency);
 
-        CurrencyDto baseCurrencyDto = new CurrencyDto(baseCodeCurrency);
-        CurrencyDto targetCurrencyDto = new CurrencyDto(targetCodeCurrency);
-        Currency baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
-        Currency targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
-
-        ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency);
-        ExchangeRate exchangeRate = exchangeRateDao.findByCode(exchangeRateDto).orElseThrow();
+        ExchangeRate exchangeRate = exchangeRateDao.findByCode(baseCodeCurrency, targetCodeCurrency).orElseThrow();
         resp.setStatus(HttpServletResponse.SC_OK);
         mapper.writeValue(resp.getWriter(), exchangeRate);
     }
@@ -85,13 +80,13 @@ public class ExchangeRateServlet extends HttpServlet {
             throw new InvalidParameterException("Rate is not valid");
         }
 
-        CurrencyDto baseCurrencyDto = new CurrencyDto(baseCodeCurrency);
-        CurrencyDto targetCurrencyDto = new CurrencyDto(targetCodeCurrency);
-        Currency baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
-        Currency targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
+        Currency baseCurrency = currencyDao.findByCode(baseCodeCurrency).orElseThrow();
+        Currency targetCurrency = currencyDao.findByCode(targetCodeCurrency).orElseThrow();
 
         ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency, rate);
-        ExchangeRate exchangeRate = exchangeRateDao.update(exchangeRateDto).orElseThrow();
+        ExchangeRate exchangeRate = exchangeRateDao
+                .update(CONVERTER_CURRENCY_UTIL.dtoToExchangeRate(exchangeRateDto))
+                .orElseThrow();
         resp.setStatus(HttpServletResponse.SC_OK);
         mapper.writeValue(resp.getWriter(), exchangeRate);
     }

@@ -12,6 +12,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.ConverterCurrencyUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.util.List;
 public class CurrenciesServlet extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
     private final CurrencyDao currencyDao = new JdbcCurrencyDao();
+    private static final ConverterCurrencyUtil CONVERTER_CURRENCY_UTIL = new ConverterCurrencyUtil();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -32,8 +34,9 @@ public class CurrenciesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         List<Currency> currencies = currencyDao.findAll();
-        mapper.writeValue(response.getWriter(), currencies);
+
         response.setStatus(HttpServletResponse.SC_OK);
+        mapper.writeValue(response.getWriter(), currencies);
     }
 
     @Override
@@ -44,9 +47,13 @@ public class CurrenciesServlet extends HttpServlet {
         CurrencyDto currencyDto = new CurrencyDto(code, name, sign);
         ValidationUtil.validateCurrencyDto(currencyDto);
 
-        Currency currency = currencyDao.save(currencyDto).orElseThrow();
-        mapper.writeValue(resp.getWriter(), currency);
+        Currency currency = currencyDao
+                .save(CONVERTER_CURRENCY_UTIL.dtoToEntity(currencyDto))
+                .orElseThrow();
+
         resp.setStatus(HttpServletResponse.SC_CREATED);
+        mapper.writeValue(resp.getWriter(), currency);
+
     }
 
     @Override
@@ -55,9 +62,9 @@ public class CurrenciesServlet extends HttpServlet {
         ValidationUtil.validateCurrencyCode(code);
 
         CurrencyDto currencyDto = new CurrencyDto(code);
-        Currency currency = currencyDao.delete(currencyDto).orElseThrow();
+        Currency currency = currencyDao.delete(CONVERTER_CURRENCY_UTIL.dtoToEntity(currencyDto)).orElseThrow();
 
-        mapper.writeValue(resp.getWriter(), currency);
         resp.setStatus(HttpServletResponse.SC_CREATED);
+        mapper.writeValue(resp.getWriter(), currency);
     }
 }

@@ -8,8 +8,6 @@ public interface CrudDao<T, ID> {
 
     Optional<T> findById(ID id);
 
-    Optional<T> findByCode(T entity);
-
     Optional<T> save(T entity);
 
     Optional<T> delete(T entity);

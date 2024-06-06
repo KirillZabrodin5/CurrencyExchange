@@ -5,7 +5,7 @@ import Exceptions.EntityExistsException;
 import Exceptions.InvalidParameterException;
 import Exceptions.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import entities.AnswerError;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;
@@ -21,14 +21,9 @@ public class MyFilter extends HttpFilter {
 
     @Override
     public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        //надо здесь как-то перенаправлять запрос в нужный сервлет
-        //а потом выполнять необходимый метод в блоке try, а в catch ловить ошибки все и
-        //создавать Json и меняя код ответа
-
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");
 
-        //примерно так должно выглядеть:
         try {
             super.doFilter(request, response, chain);
         } catch (InvalidParameterException e) {
@@ -44,6 +39,7 @@ public class MyFilter extends HttpFilter {
 
     private void writeExceptionToResponse(HttpServletResponse response, int codeException, Exception exception) throws IOException {
         response.setStatus(codeException);
-        mapper.writeValue(response.getWriter(), exception);
+        AnswerError answerError = new AnswerError(exception.getMessage());
+        mapper.writeValue(response.getWriter(), answerError);
     }
 }

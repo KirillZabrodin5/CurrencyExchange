@@ -4,7 +4,6 @@ import Exceptions.DatabaseUnavailableException;
 import Exceptions.NotFoundException;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
-import dto.CurrencyDto;
 import entities.Currency;
 
 /**
@@ -17,18 +16,18 @@ import entities.Currency;
 public class TransferRoute { //название говно, подумать еще
     private final Long idStartCurrency;
     private final Long idEndCurrency;
-    private final JdbcExchangeRateDao jdbcExchangeRateDao = new JdbcExchangeRateDao();
+    private final JdbcCurrencyDao currencyDao = new JdbcCurrencyDao();
+    private final JdbcExchangeRateDao exchangeRateDao = new JdbcExchangeRateDao();
+    private final static String TRANSIT_CODE_CURRENCY = "USD";
 
-    public TransferRoute(String startCodeCurrency, String endCodeCurrency) throws NotFoundException, DatabaseUnavailableException {
-        JdbcCurrencyDao dao = new JdbcCurrencyDao();
-        CurrencyDto currencyDtoStart = new CurrencyDto(startCodeCurrency);
-        CurrencyDto currencyDtoEnd = new CurrencyDto(endCodeCurrency);
-        idStartCurrency = dao
-                .findByCode(currencyDtoStart)
+    public TransferRoute(String startCodeCurrency, String endCodeCurrency)
+            throws NotFoundException, DatabaseUnavailableException {
+        idStartCurrency = currencyDao
+                .findByCode(startCodeCurrency)
                 .orElseThrow()
                 .getId();
-        idEndCurrency = dao
-                .findByCode(currencyDtoEnd)
+        idEndCurrency = currencyDao
+                .findByCode(endCodeCurrency)
                 .orElseThrow()
                 .getId();
     }
@@ -43,14 +42,14 @@ public class TransferRoute { //название говно, подумать е�
             return 1;
         }
 
-        double result = jdbcExchangeRateDao.getRate(idStartCurrency, idEndCurrency);
+        double result = exchangeRateDao.getRate(idStartCurrency, idEndCurrency);
         if (result > 0) {
             //если есть прямой перевод, то работаем
             answer = result;
         } else {
             //если прямого перевода нет, то 2 случая:
             //есть перевод BA и есть перевод с промежуточной валютой USD
-            result = jdbcExchangeRateDao.getRate(idEndCurrency, idStartCurrency);
+            result = exchangeRateDao.getRate(idEndCurrency, idStartCurrency);
             if (result > 0) {
                 //BA
                 answer = 1 / result;
@@ -64,15 +63,13 @@ public class TransferRoute { //название говно, подумать е�
     }
 
     private double transferWithIntermediateCurrency() {
-        JdbcCurrencyDao dao = new JdbcCurrencyDao();
-        CurrencyDto currencyDto = new CurrencyDto("USD");
-        Currency currency = dao.findByCode(currencyDto).orElseThrow();
+        Currency currency = currencyDao.findByCode(TRANSIT_CODE_CURRENCY).orElseThrow();
         Long idUsd = currency.getId();
 
-        double USDtoStart = jdbcExchangeRateDao
+        double USDtoStart = exchangeRateDao
                 .getRate(idUsd, idStartCurrency);
 
-        double USDtoEnd = jdbcExchangeRateDao
+        double USDtoEnd = exchangeRateDao
                 .getRate(idUsd, idEndCurrency);
 
         return USDtoEnd / USDtoStart;

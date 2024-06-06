@@ -4,7 +4,9 @@ import Exceptions.InvalidParameterException;
 import dto.CurrencyDto;
 import dto.CurrencyExchangeDto;
 
+import java.util.ArrayList;
 import java.util.Currency;
+import java.util.List;
 import java.util.Set;
 
 public class ValidationUtil {
@@ -15,8 +17,8 @@ public class ValidationUtil {
             throw new InvalidParameterException("Name is null");
         }
 
-        if (currencyDto.getCode() == null) {
-            throw new InvalidParameterException("Code is null");
+        if (currencyDto.getSign() == null) {
+            throw new InvalidParameterException("Sign is null");
         }
     }
 
@@ -38,8 +40,12 @@ public class ValidationUtil {
         }
 
         Set<Currency> currencies = Currency.getAvailableCurrencies();
-        Currency currency = Currency.getInstance(code);
-        if (!currencies.contains(currency)) {
+        List<String> codes = new ArrayList<>(currencies.size());
+        for(Currency currency : currencies) {
+            codes.add(currency.getCurrencyCode());
+        }
+
+        if (!codes.contains(code)) {
             throw new InvalidParameterException("There is no currency with code " + code);
         }
     }

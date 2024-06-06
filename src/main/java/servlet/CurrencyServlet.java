@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dao.CurrencyDao;
 import dao.JdbcCurrencyDao;
-import dto.CurrencyDto;
 import entities.Currency;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -33,8 +32,9 @@ public class CurrencyServlet extends HttpServlet {
 
         ValidationUtil.validateCurrencyCode(codeCurrency);
 
-        Currency currency = currencyDao.findByCode(new CurrencyDto(codeCurrency)).orElseThrow();
+        Currency currency = currencyDao.findByCode(codeCurrency).orElseThrow();
 
+        resp.setStatus(HttpServletResponse.SC_OK);
         mapper.writeValue(resp.getWriter(), currency);
     }
 }

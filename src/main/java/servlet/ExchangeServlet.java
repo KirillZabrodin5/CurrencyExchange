@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dao.CurrencyDao;
 import dao.JdbcCurrencyDao;
-import dto.CurrencyDto;
 import dto.CurrencyExchangeDto;
 import entities.Currency;
 import entities.CurrencyExchange;
@@ -41,16 +40,14 @@ public class ExchangeServlet extends HttpServlet {
         ValidationUtil.validateCurrencyExchangeDto(currencyExchangeDto);
 
         CurrencyExchange currencyExchange = getCurrencyExchange(baseCurrencyCode, targetCurrencyCode, amountDouble);
-        mapper.writeValue(resp.getWriter(), currencyExchange);
+
         resp.setStatus(HttpServletResponse.SC_OK);
+        mapper.writeValue(resp.getWriter(), currencyExchange);
     }
 
     private CurrencyExchange getCurrencyExchange(String baseCode, String targetCode, double amount) {
-        CurrencyDto baseCurrencyDto = new CurrencyDto(baseCode);
-        CurrencyDto targetCurrencyDto = new CurrencyDto(targetCode);
-
-        Currency baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
-        Currency targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
+        Currency baseCurrency = currencyDao.findByCode(baseCode).orElseThrow();
+        Currency targetCurrency = currencyDao.findByCode(targetCode).orElseThrow();
 
         TransferRoute transferRoute = new TransferRoute(baseCode, targetCode);
         double rate = transferRoute.getRate();

@@ -7,7 +7,6 @@ import dao.CurrencyDao;
 import dao.ExchangeRateDao;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
-import dto.CurrencyDto;
 import dto.ExchangeRateDto;
 import entities.Currency;
 import entities.ExchangeRate;
@@ -17,6 +16,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.ConverterCurrencyUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -26,6 +26,7 @@ import java.util.List;
 public class ExchangeRatesServlet extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
     private final ExchangeRateDao exchangeRateDao = new JdbcExchangeRateDao();
+    private static final ConverterCurrencyUtil CONVERTER_CURRENCY_UTIL = new ConverterCurrencyUtil();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -37,8 +38,8 @@ public class ExchangeRatesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         List<ExchangeRate> exchangeRates = exchangeRateDao.findAll();
-        mapper.writeValue(response.getWriter(), exchangeRates);
         response.setStatus(HttpServletResponse.SC_OK);
+        mapper.writeValue(response.getWriter(), exchangeRates);
     }
 
     @Override
@@ -53,16 +54,13 @@ public class ExchangeRatesServlet extends HttpServlet {
         }
         CurrencyDao currencyDao = new JdbcCurrencyDao();
 
-        CurrencyDto baseCurrencyDto = new CurrencyDto(baseCurrencyCode);
-        CurrencyDto targetCurrencyDto = new CurrencyDto(targetCurrencyCode);
-        Currency baseCurrency = currencyDao.findByCode(baseCurrencyDto).orElseThrow();
-        Currency targetCurrency = currencyDao.findByCode(targetCurrencyDto).orElseThrow();
+        Currency baseCurrency = currencyDao.findByCode(baseCurrencyCode).orElseThrow();
+        Currency targetCurrency = currencyDao.findByCode(targetCurrencyCode).orElseThrow();
 
         ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency, Double.parseDouble(rate));
-        ExchangeRate exchangeRate = exchangeRateDao.save(exchangeRateDto).orElseThrow();
+        ExchangeRate exchangeRate = exchangeRateDao.save(CONVERTER_CURRENCY_UTIL.dtoToExchangeRate(exchangeRateDto)).orElseThrow();
 
-        mapper.writeValue(resp.getWriter(), exchangeRate);
         resp.setStatus(HttpServletResponse.SC_CREATED);
-
+        mapper.writeValue(resp.getWriter(), exchangeRate);
     }
 }

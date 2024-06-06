@@ -61,7 +61,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<ExchangeRate> findByCode(ExchangeRate exchangeRateInput) {
+    public Optional<ExchangeRate> findByCode(String baseCode, String targetCode) {
         final String sqlQuery = """
                 SELECT ex.id,
                        (SELECT id
@@ -79,8 +79,8 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sqlQuery);
         ) {
-            statement.setString(1, exchangeRateInput.getBaseCurrency().getCode());
-            statement.setString(2, exchangeRateInput.getTargetCurrency().getCode());
+            statement.setString(1, baseCode);
+            statement.setString(2, targetCode);
             ResultSet resultSet = statement.executeQuery();
             if (!resultSet.next()) {
                 throw new NotFoundException("Exchange Rate not found");

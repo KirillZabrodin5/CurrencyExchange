@@ -52,7 +52,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<Currency> findByCode(Currency currencyInput) {
+    public Optional<Currency> findByCode(String code) {
         final String sqlQuery = """
                 SELECT *
                 FROM Currencies 
@@ -61,7 +61,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 Connection con = ConnectionManager.open();
                 PreparedStatement stmt = con.prepareStatement(sqlQuery);
         ) {
-            stmt.setString(1, currencyInput.getCode());
+            stmt.setString(1, code);
             ResultSet rs = stmt.executeQuery();
             if (!rs.next()) {
                 throw new NotFoundException("Currency not found");
@@ -95,7 +95,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 PreparedStatement statement = connection.prepareStatement(sqlQuery)
         ) {
             statement.setString(1, currencyInput.getCode());
-            statement.setString(2, currencyInput.getName());
+            statement.setString(2, currencyInput.getFullName());
             statement.setString(3, currencyInput.getSign());
             ResultSet rs = statement.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
