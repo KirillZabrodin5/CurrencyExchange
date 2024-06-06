@@ -3,7 +3,6 @@ package dao;
 import Exceptions.DatabaseUnavailableException;
 import Exceptions.EntityExistsException;
 import Exceptions.NotFoundException;
-import dto.CurrencyDto;
 import entities.Currency;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
@@ -53,7 +52,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<Currency> findByCode(CurrencyDto currencyDto) {
+    public Optional<Currency> findByCode(Currency currencyInput) {
         final String sqlQuery = """
                 SELECT *
                 FROM Currencies 
@@ -62,12 +61,13 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 Connection con = ConnectionManager.open();
                 PreparedStatement stmt = con.prepareStatement(sqlQuery);
         ) {
-            stmt.setString(1, currencyDto.getCode());
+            stmt.setString(1, currencyInput.getCode());
             ResultSet rs = stmt.executeQuery();
-            Currency currency = getCurrencyFromResultSet(rs);
             if (!rs.next()) {
                 throw new NotFoundException("Currency not found");
             }
+
+            Currency currency = getCurrencyFromResultSet(rs);
             return Optional.of(currency);
         } catch (SQLException e) {
             throw new DatabaseUnavailableException("Database unavailable");
@@ -84,7 +84,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<Currency> save(CurrencyDto currencyDto) {
+    public Optional<Currency> save(Currency currencyInput) {
         final String sqlQuery = """
                 INSERT INTO Currencies(code, full_name, sign)
                 VALUES (?, ?, ?)
@@ -94,9 +94,9 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 Connection connection = ConnectionManager.open();
                 PreparedStatement statement = connection.prepareStatement(sqlQuery)
         ) {
-            statement.setString(1, currencyDto.getCode());
-            statement.setString(2, currencyDto.getName());
-            statement.setString(3, currencyDto.getSign());
+            statement.setString(1, currencyInput.getCode());
+            statement.setString(2, currencyInput.getName());
+            statement.setString(3, currencyInput.getSign());
             ResultSet rs = statement.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
             return Optional.of(currency);
@@ -119,7 +119,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<Currency> delete(CurrencyDto curr) {
+    public Optional<Currency> delete(Currency curr) {
         final String sqlQuery = """
                 DELETE FROM Currencies
                 WHERE code = ?
@@ -133,10 +133,11 @@ public class JdbcCurrencyDao implements CurrencyDao {
         ) {
             statement.setString(1, curr.getCode());
             ResultSet rs = statement.executeQuery();
-            Currency currency = getCurrencyFromResultSet(rs);
             if (!rs.next()) {
                 throw new NotFoundException("Currency with code " + curr.getCode() + " not found");
             }
+
+            Currency currency = getCurrencyFromResultSet(rs);
             return Optional.of(currency);
         } catch (SQLException ex) {
             throw new DatabaseUnavailableException("Database unavailable");
@@ -152,7 +153,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<Currency> findById(Currency currencyInput) {
+    public Optional<Currency> findById(Long id) {
         final String sqlQuery = """
                 SELECT *
                 FROM Currencies 
@@ -161,13 +162,13 @@ public class JdbcCurrencyDao implements CurrencyDao {
                 Connection con = ConnectionManager.open();
                 PreparedStatement stmt = con.prepareStatement(sqlQuery);
         ) {
-            stmt.setLong(1, currencyInput.getId());
+            stmt.setLong(1, id);
             ResultSet rs = stmt.executeQuery();
-            Currency currency = getCurrencyFromResultSet(rs);
             if (!rs.next()) {
-                throw new NotFoundException("Currency with id " + currencyInput.getId()
-                        + " not found");
+                throw new NotFoundException("Currency with id " + id + " not found");
             }
+
+            Currency currency = getCurrencyFromResultSet(rs);
             return Optional.of(currency);
         } catch (SQLException e) {
             throw new DatabaseUnavailableException("Database unavailable");

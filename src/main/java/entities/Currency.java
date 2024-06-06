@@ -8,14 +8,10 @@ import lombok.ToString;
 @Setter
 @Getter
 @AllArgsConstructor
-@ToString()
+@ToString
 public class Currency {
-    private Long id = null;
-    private String code = null;
-    private String name = null;
-    private String sign = null;
-
-    public Currency(Long id) {
-        this.id = id;
-    }
+    private Long id;
+    private String code;
+    private String name;
+    private String sign;
 }

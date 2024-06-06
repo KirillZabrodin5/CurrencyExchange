@@ -3,12 +3,14 @@ package dao;
 import java.util.List;
 import java.util.Optional;
 
-public interface CrudDao<T, C> {
+public interface CrudDao<T, ID> {
     List<T> findAll();
 
-    Optional<T> findByCode(C dto);
+    Optional<T> findById(ID id);
 
-    Optional<T> save(C entity);
+    Optional<T> findByCode(T entity);
 
-    Optional<T> delete(C entity);
+    Optional<T> save(T entity);
+
+    Optional<T> delete(T entity);
 }

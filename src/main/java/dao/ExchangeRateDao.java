@@ -5,6 +5,6 @@ import entities.ExchangeRate;
 
 import java.util.Optional;
 
-public interface ExchangeRateDao extends CrudDao<ExchangeRate, ExchangeRateDto> {
-    Optional<ExchangeRate> update(ExchangeRateDto exchangeRateDto);
+public interface ExchangeRateDao extends CrudDao<ExchangeRate, Long> {
+    Optional<ExchangeRate> update(ExchangeRate exchangeRate);
 }
