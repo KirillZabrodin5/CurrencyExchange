@@ -2,6 +2,8 @@ package entities;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @ToString
@@ -11,9 +13,9 @@ public class ExchangeRate {
     private Long id;
     private Currency baseCurrency;
     private Currency targetCurrency;
-    private double rate;
+    private BigDecimal rate;
 
-    public ExchangeRate(Currency baseCurrency, Currency targetCurrency, double rate) {
+    public ExchangeRate(Currency baseCurrency, Currency targetCurrency, BigDecimal rate) {
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
         this.rate = rate;

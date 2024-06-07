@@ -18,6 +18,7 @@ import utils.ConverterUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
@@ -49,7 +50,7 @@ public class ExchangeRateServlet extends HttpServlet {
         ValidationUtil.validateCurrencyCode(baseCodeCurrency);
         ValidationUtil.validateCurrencyCode(targetCodeCurrency);
 
-        ExchangeRate exchangeRate = exchangeRateDao.findByCode(baseCodeCurrency, targetCodeCurrency).orElseThrow();
+        ExchangeRate exchangeRate = exchangeRateDao.findByCodes(baseCodeCurrency, targetCodeCurrency).orElseThrow();
         resp.setStatus(HttpServletResponse.SC_OK);
         mapper.writeValue(resp.getWriter(), CONVERTER_UTIL.exchangeRateToDto(exchangeRate));
     }
@@ -73,9 +74,9 @@ public class ExchangeRateServlet extends HttpServlet {
         }
         String postBody = body.toString();
         String[] params = postBody.split("=");
-        double rate;
+        BigDecimal rate;
         if (params.length == 2 && params[0].equals("rate")) {
-            rate = Double.parseDouble(params[1]);
+            rate = BigDecimal.valueOf(Double.parseDouble(params[1]));
         } else {
             throw new InvalidParameterException("Rate is not valid");
         }

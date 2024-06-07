@@ -9,6 +9,7 @@ import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 import utils.ConnectionManager;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -61,7 +62,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
      * Ошибка (например, база данных недоступна) - 500
      */
     @Override
-    public Optional<ExchangeRate> findByCode(String baseCode, String targetCode) {
+    public Optional<ExchangeRate> findByCodes(String baseCode, String targetCode) {
         final String sqlQuery = """
                 SELECT ex.id,
                        (SELECT id
@@ -126,7 +127,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
 
             statement.setLong(1, idStart);
             statement.setLong(2, idEnd);
-            statement.setDouble(3, exchangeRateInput.getRate());
+            statement.setBigDecimal(3, exchangeRateInput.getRate());
             ResultSet rs = statement.executeQuery();
             return Optional.of(getExchangeRate(rs));
         } catch (SQLException ex) {
@@ -194,7 +195,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
             if (idStart == 0L || idEnd == 0L) {
                 throw new NotFoundException("Currency not found");
             }
-            statement.setDouble(1, exchangeRate.getRate());
+            statement.setBigDecimal(1, exchangeRate.getRate());
             statement.setLong(2, idStart);
             statement.setLong(3, idEnd);
             ResultSet rs = statement.executeQuery();
@@ -207,7 +208,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
     /**
      * Делаем запрос к таблице ExchangeRate и возвращаем rate
      */
-    public double getRate(Long idStartCurrency, Long idEndCurrency) {
+    public BigDecimal getRate(Long idStartCurrency, Long idEndCurrency) {
         final String sqlQuery = """
                 SELECT rate
                 FROM ExchangeRates
@@ -228,7 +229,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 throw new NotFoundException("Exchange Rate not found");
             }
 
-            return rs.getDouble("rate");
+            return rs.getBigDecimal("rate");
         } catch (SQLException e) {
             throw new DatabaseUnavailableException("Database unavailable");
         }
@@ -251,7 +252,7 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
                 findById(id2)
                 .orElse(null);
 
-        double rate = resultSet.getDouble(4);
+        BigDecimal rate = resultSet.getBigDecimal(4);
         exchangeRate = new ExchangeRate(
                 id,
                 currency1,

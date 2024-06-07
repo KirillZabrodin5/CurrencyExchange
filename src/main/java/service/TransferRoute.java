@@ -6,6 +6,8 @@ import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
 import entities.Currency;
 
+import java.math.BigDecimal;
+
 /**
  * Класс для определения, существует ли прямой маршрут перевода,
  * обратный курс или такого курса нет вообще
@@ -35,24 +37,25 @@ public class TransferRoute { //название говно, подумать е�
     /**
      * Этот метод возвращает rate. Например, если из 63.75 рублей хотим получить доллары, то получим один
      */
-    public double getRate() {
-        double answer;
+    public BigDecimal getRate() {
+        BigDecimal answer;
 
         if (idStartCurrency.equals(idEndCurrency)) {
-            return 1;
+            answer = new BigDecimal(1);
+            return answer;
         }
 
-        double result = exchangeRateDao.getRate(idStartCurrency, idEndCurrency);
-        if (result > 0) {
+        BigDecimal result = exchangeRateDao.getRate(idStartCurrency, idEndCurrency);
+        if (result.compareTo(new BigDecimal(0)) > 0) {
             //если есть прямой перевод, то работаем
             answer = result;
         } else {
             //если прямого перевода нет, то 2 случая:
             //есть перевод BA и есть перевод с промежуточной валютой USD
             result = exchangeRateDao.getRate(idEndCurrency, idStartCurrency);
-            if (result > 0) {
+            if (result.compareTo(new BigDecimal(0)) > 0) {
                 //BA
-                answer = 1 / result;
+                answer = new BigDecimal(1).divide(result);
             } else {
                 //перевод с промежуточной валютой USD
                 answer = transferWithIntermediateCurrency();
@@ -62,16 +65,16 @@ public class TransferRoute { //название говно, подумать е�
         return answer;
     }
 
-    private double transferWithIntermediateCurrency() {
+    private BigDecimal transferWithIntermediateCurrency() {
         Currency currency = currencyDao.findByCode(TRANSIT_CODE_CURRENCY).orElseThrow();
         Long idUsd = currency.getId();
 
-        double USDtoStart = exchangeRateDao
+        BigDecimal USDtoStart = exchangeRateDao
                 .getRate(idUsd, idStartCurrency);
 
-        double USDtoEnd = exchangeRateDao
+        BigDecimal USDtoEnd = exchangeRateDao
                 .getRate(idUsd, idEndCurrency);
 
-        return USDtoEnd / USDtoStart;
+        return USDtoEnd.divide(USDtoStart);
     }
 }

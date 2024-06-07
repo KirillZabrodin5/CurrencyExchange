@@ -20,6 +20,7 @@ import utils.ConverterUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @WebServlet("/exchangeRates")
@@ -62,7 +63,7 @@ public class ExchangeRatesServlet extends HttpServlet {
         Currency targetCurrency = currencyDao.findByCode(targetCurrencyCode).orElseThrow();
 
         ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency,
-                targetCurrency, Double.parseDouble(rate));
+                targetCurrency, new BigDecimal(rate));
         ExchangeRate exchangeRate = exchangeRateDao
                 .save(CONVERTER_UTIL.dtoToExchangeRate(exchangeRateDto))
                 .orElseThrow();

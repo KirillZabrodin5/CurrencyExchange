@@ -17,11 +17,11 @@ public class CurrencyExchange {
     private BigDecimal convertedAmount;
 
     public CurrencyExchange(Currency baseCurrency, Currency targetCurrency,
-                            double rate, double amount) {
+                            BigDecimal rate, double amount) {
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
-        this.rate = new BigDecimal(rate).setScale(2, RoundingMode.HALF_UP);
+        this.rate = rate.setScale(2, RoundingMode.HALF_UP);
         this.amount = new BigDecimal(amount).setScale(2, RoundingMode.HALF_UP);
-        this.convertedAmount = new BigDecimal(amount * rate).setScale(2, RoundingMode.HALF_UP);
+        this.convertedAmount = new BigDecimal(String.valueOf(rate.multiply(this.amount))).setScale(2, RoundingMode.HALF_UP);
     }
 }

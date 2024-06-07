@@ -17,6 +17,7 @@ import service.TransferRoute;
 import utils.ValidationUtil;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @WebServlet("/exchange")
 public class ExchangeServlet extends HttpServlet {
@@ -50,7 +51,7 @@ public class ExchangeServlet extends HttpServlet {
         Currency targetCurrency = currencyDao.findByCode(targetCode).orElseThrow();
 
         TransferRoute transferRoute = new TransferRoute(baseCode, targetCode);
-        double rate = transferRoute.getRate();
+        BigDecimal rate = transferRoute.getRate();
         return new CurrencyExchange(baseCurrency, targetCurrency, rate, amount);
     }
 }
