@@ -3,6 +3,8 @@ package entities;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 @Setter
@@ -10,18 +12,16 @@ import java.text.DecimalFormat;
 public class CurrencyExchange {
     private Currency baseCurrency;
     private Currency targetCurrency;
-    private double rate;
-    private double amount;
-    private double convertedAmount;
+    private BigDecimal rate;
+    private BigDecimal amount;
+    private BigDecimal convertedAmount;
 
     public CurrencyExchange(Currency baseCurrency, Currency targetCurrency,
                             double rate, double amount) {
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
-        DecimalFormat decFormat = new DecimalFormat("#.##");
-        this.rate = Double.parseDouble(decFormat.format(rate).replace(',', '.'));
-        this.amount = Double.parseDouble(decFormat.format(amount).replace(',', '.'));
-        this.convertedAmount = Double.parseDouble(decFormat.format(amount * rate).replace(',', '.'));
+        this.rate = new BigDecimal(rate).setScale(2, RoundingMode.HALF_UP);
+        this.amount = new BigDecimal(amount).setScale(2, RoundingMode.HALF_UP);
+        this.convertedAmount = new BigDecimal(amount * rate).setScale(2, RoundingMode.HALF_UP);
     }
-
 }

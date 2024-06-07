@@ -282,34 +282,4 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
             throw new RuntimeException(e);
         }
     }
-
-
-    //TODO этот метод не нужен вроде. Подумать над ним
-//    /**
-//     * Метод для получения id пары обменного курса из одной валюты в другую
-//     */
-//    private Long getId(String baseCode, String targetCode) {
-//        long idExRate;
-//        final String sqlQuery = """
-//                SELECT id
-//                FROM ExchangeRates
-//                WHERE base_currency_id = ? and
-//                target_currency_id = ?""";
-//        try (
-//                Connection connection = ConnectionManager.open();
-//                PreparedStatement stmt = connection.prepareStatement(sqlQuery)
-//        ) {
-//            JdbcCurrencyDao jdbcCurrencyDao = new JdbcCurrencyDao();
-//            Currency baseCurrencyDto = new Currency(baseCode);
-//            Currency targetCurrencyDto = new Currency(targetCode);
-//            stmt.setLong(1,
-//                    jdbcCurrencyDao.findByCode(baseCurrencyDto).orElseThrow().getId());
-//            stmt.setLong(2,
-//                    jdbcCurrencyDao.findByCode(targetCurrencyDto).orElseThrow().getId());
-//            idExRate = stmt.executeQuery().getLong(1);
-//        } catch (SQLException ex) {
-//            throw new DatabaseUnavailableException("Database unavailable");
-//        }
-//        return idExRate;
-//    }
 }
