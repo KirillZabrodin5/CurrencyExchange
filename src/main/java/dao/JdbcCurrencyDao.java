@@ -112,39 +112,6 @@ public class JdbcCurrencyDao implements CurrencyDao {
     }
 
     /**
-     * HTTP коды ответов:
-     * Успех - 201
-     * Отсутствует нужное поле формы - 400 (эту ошибку где-то выше по слоям надо обрабатывать)
-     * Валюта с таким кодом отсутствует в таблице - 409
-     * Ошибка (например, база данных недоступна) - 500
-     */
-    @Override
-    public Optional<Currency> delete(Currency curr) {
-        final String sqlQuery = """
-                DELETE FROM Currencies
-                WHERE code = ?
-                RETURNING *
-                UPDATE sqlite_sequence 
-                SET seq = (SELECT MAX(id) FROM Currencies)
-                WHERE name = 'Currencies'""";
-        try (
-                Connection connection = ConnectionManager.open();
-                PreparedStatement statement = connection.prepareStatement(sqlQuery)
-        ) {
-            statement.setString(1, curr.getCode());
-            ResultSet rs = statement.executeQuery();
-            if (!rs.next()) {
-                throw new NotFoundException("Currency with code " + curr.getCode() + " not found");
-            }
-
-            Currency currency = getCurrencyFromResultSet(rs);
-            return Optional.of(currency);
-        } catch (SQLException ex) {
-            throw new DatabaseUnavailableException("Database unavailable");
-        }
-    }
-
-    /**
      * Метод для ExchangeRate
      * HTTP коды ответов:
      * Успех - 200

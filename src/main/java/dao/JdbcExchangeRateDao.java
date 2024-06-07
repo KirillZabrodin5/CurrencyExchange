@@ -141,31 +141,6 @@ public class JdbcExchangeRateDao implements ExchangeRateDao {
         }
     }
 
-    @Override
-    public Optional<ExchangeRate> delete(ExchangeRate exchangeRateInput) {
-        final String sqlQuery = """
-                DELETE FROM ExchangeRate
-                WHERE base_currency_id = ? AND
-                target_currency_id = ?
-                RETURNING *""";
-        try (
-                Connection connection = ConnectionManager.open();
-                PreparedStatement statement = connection.prepareStatement(sqlQuery)
-        ) {
-            Long idStart = exchangeRateInput.getBaseCurrency().getId();
-            Long idEnd = exchangeRateInput.getTargetCurrency().getId();
-            if (idStart == 0L || idEnd == 0L) {
-                throw new NotFoundException("Currency not found");
-            }
-            statement.setLong(1, idStart);
-            statement.setLong(2, idEnd);
-            ResultSet rs = statement.executeQuery();
-            return Optional.of(getExchangeRate(rs));
-        } catch (SQLException ex) {
-            throw new DatabaseUnavailableException("Database unavailable");
-        }
-    }
-
     /**
      * Метод, который получает на вход коды валют и ставку, а потом обновляет
      * эти данные в таблице ExchangeRate.

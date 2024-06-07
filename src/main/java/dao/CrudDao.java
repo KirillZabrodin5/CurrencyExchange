@@ -10,5 +10,4 @@ public interface CrudDao<T, ID> {
 
     Optional<T> save(T entity);
 
-    Optional<T> delete(T entity);
 }

@@ -57,19 +57,4 @@ public class CurrenciesServlet extends HttpServlet {
         resp.setStatus(HttpServletResponse.SC_CREATED);
         mapper.writeValue(resp.getWriter(), CONVERTER_UTIL.currencyToDto(currency));
     }
-
-    //TODO этот метод нерабочий
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String code = req.getParameter("code");
-        ValidationUtil.validateCurrencyCode(code);
-
-        CurrencyDto currencyDto = new CurrencyDto(code);
-        Currency currency = currencyDao
-                .delete(CONVERTER_UTIL.dtoToCurrency(currencyDto))
-                .orElseThrow();
-
-        resp.setStatus(HttpServletResponse.SC_CREATED);
-        mapper.writeValue(resp.getWriter(), CONVERTER_UTIL.currencyToDto(currency));
-    }
 }
