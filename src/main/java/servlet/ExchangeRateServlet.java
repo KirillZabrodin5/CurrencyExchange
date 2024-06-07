@@ -14,7 +14,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import utils.ConverterCurrencyUtil;
+import utils.ConverterUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -24,7 +24,7 @@ public class ExchangeRateServlet extends HttpServlet {
     private static final ObjectMapper mapper = new ObjectMapper();
     public static final CurrencyDao currencyDao = new JdbcCurrencyDao();
     public static final ExchangeRateDao exchangeRateDao = new JdbcExchangeRateDao();
-    private static final ConverterCurrencyUtil CONVERTER_CURRENCY_UTIL = new ConverterCurrencyUtil();
+    private static final ConverterUtil CONVERTER_UTIL = new ConverterUtil();
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -51,7 +51,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
         ExchangeRate exchangeRate = exchangeRateDao.findByCode(baseCodeCurrency, targetCodeCurrency).orElseThrow();
         resp.setStatus(HttpServletResponse.SC_OK);
-        mapper.writeValue(resp.getWriter(), exchangeRate);
+        mapper.writeValue(resp.getWriter(), CONVERTER_UTIL.exchangeRateToDto(exchangeRate));
     }
 
     public void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -85,9 +85,9 @@ public class ExchangeRateServlet extends HttpServlet {
 
         ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency, rate);
         ExchangeRate exchangeRate = exchangeRateDao
-                .update(CONVERTER_CURRENCY_UTIL.dtoToExchangeRate(exchangeRateDto))
+                .update(CONVERTER_UTIL.dtoToExchangeRate(exchangeRateDto))
                 .orElseThrow();
         resp.setStatus(HttpServletResponse.SC_OK);
-        mapper.writeValue(resp.getWriter(), exchangeRate);
+        mapper.writeValue(resp.getWriter(), CONVERTER_UTIL.exchangeRateToDto(exchangeRate));
     }
 }

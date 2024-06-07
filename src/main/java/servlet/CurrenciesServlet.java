@@ -12,7 +12,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import utils.ConverterCurrencyUtil;
+import utils.ConverterUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -22,7 +22,7 @@ import java.util.List;
 public class CurrenciesServlet extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
     private final CurrencyDao currencyDao = new JdbcCurrencyDao();
-    private static final ConverterCurrencyUtil CONVERTER_CURRENCY_UTIL = new ConverterCurrencyUtil();
+    private static final ConverterUtil CONVERTER_UTIL = new ConverterUtil();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -33,7 +33,10 @@ public class CurrenciesServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        List<Currency> currencies = currencyDao.findAll();
+        List<CurrencyDto> currencies = currencyDao.findAll()
+                .stream()
+                .map(CONVERTER_UTIL::currencyToDto)
+                .toList();
 
         response.setStatus(HttpServletResponse.SC_OK);
         mapper.writeValue(response.getWriter(), currencies);
@@ -48,23 +51,25 @@ public class CurrenciesServlet extends HttpServlet {
         ValidationUtil.validateCurrencyDto(currencyDto);
 
         Currency currency = currencyDao
-                .save(CONVERTER_CURRENCY_UTIL.dtoToEntity(currencyDto))
+                .save(CONVERTER_UTIL.dtoToCurrency(currencyDto))
                 .orElseThrow();
 
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        mapper.writeValue(resp.getWriter(), currency);
-
+        mapper.writeValue(resp.getWriter(), CONVERTER_UTIL.currencyToDto(currency));
     }
 
+    //TODO этот метод нерабочий
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String code = req.getParameter("code");
         ValidationUtil.validateCurrencyCode(code);
 
         CurrencyDto currencyDto = new CurrencyDto(code);
-        Currency currency = currencyDao.delete(CONVERTER_CURRENCY_UTIL.dtoToEntity(currencyDto)).orElseThrow();
+        Currency currency = currencyDao
+                .delete(CONVERTER_UTIL.dtoToCurrency(currencyDto))
+                .orElseThrow();
 
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        mapper.writeValue(resp.getWriter(), currency);
+        mapper.writeValue(resp.getWriter(), CONVERTER_UTIL.currencyToDto(currency));
     }
 }

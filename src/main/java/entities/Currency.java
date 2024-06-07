@@ -1,16 +1,14 @@
 package entities;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @Setter
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 @ToString
 public class Currency {
-    private Long id;
+    private Long id = 0L;
     private String code;
     private String fullName;
     private String sign;

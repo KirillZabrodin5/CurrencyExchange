@@ -11,6 +11,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import utils.ConverterUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.io.IOException;
 public class CurrencyServlet extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
     private final CurrencyDao currencyDao = new JdbcCurrencyDao();
+    private static final ConverterUtil CONVERTER_UTIL = new ConverterUtil();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -35,6 +37,6 @@ public class CurrencyServlet extends HttpServlet {
         Currency currency = currencyDao.findByCode(codeCurrency).orElseThrow();
 
         resp.setStatus(HttpServletResponse.SC_OK);
-        mapper.writeValue(resp.getWriter(), currency);
+        mapper.writeValue(resp.getWriter(), CONVERTER_UTIL.currencyToDto(currency));
     }
 }

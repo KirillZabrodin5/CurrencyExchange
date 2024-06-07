@@ -14,7 +14,6 @@ public class FirstServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         resp.setContentType("text/html");
-        resp.setCharacterEncoding("UTF-8");
         resp.getWriter().write("<h1>Hello, World!</h1>");
     }
 }

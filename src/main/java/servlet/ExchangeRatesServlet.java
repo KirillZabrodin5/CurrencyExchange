@@ -16,7 +16,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import utils.ConverterCurrencyUtil;
+import utils.ConverterUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -26,7 +26,7 @@ import java.util.List;
 public class ExchangeRatesServlet extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
     private final ExchangeRateDao exchangeRateDao = new JdbcExchangeRateDao();
-    private static final ConverterCurrencyUtil CONVERTER_CURRENCY_UTIL = new ConverterCurrencyUtil();
+    private static final ConverterUtil CONVERTER_UTIL = new ConverterUtil();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -37,7 +37,11 @@ public class ExchangeRatesServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        List<ExchangeRate> exchangeRates = exchangeRateDao.findAll();
+        List<ExchangeRateDto> exchangeRates = exchangeRateDao
+                .findAll()
+                .stream()
+                .map(CONVERTER_UTIL::exchangeRateToDto)
+                .toList();
         response.setStatus(HttpServletResponse.SC_OK);
         mapper.writeValue(response.getWriter(), exchangeRates);
     }
@@ -57,10 +61,13 @@ public class ExchangeRatesServlet extends HttpServlet {
         Currency baseCurrency = currencyDao.findByCode(baseCurrencyCode).orElseThrow();
         Currency targetCurrency = currencyDao.findByCode(targetCurrencyCode).orElseThrow();
 
-        ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency, targetCurrency, Double.parseDouble(rate));
-        ExchangeRate exchangeRate = exchangeRateDao.save(CONVERTER_CURRENCY_UTIL.dtoToExchangeRate(exchangeRateDto)).orElseThrow();
+        ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency,
+                targetCurrency, Double.parseDouble(rate));
+        ExchangeRate exchangeRate = exchangeRateDao
+                .save(CONVERTER_UTIL.dtoToExchangeRate(exchangeRateDto))
+                .orElseThrow();
 
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        mapper.writeValue(resp.getWriter(), exchangeRate);
+        mapper.writeValue(resp.getWriter(), CONVERTER_UTIL.exchangeRateToDto(exchangeRate));
     }
 }
