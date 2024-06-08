@@ -1,0 +1,40 @@
+### resize
+Checking that no-one is using this disk right now ... OK
+
+Disk /dev/vda: 15 GiB, 16106127360 bytes, 31457280 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x3f4e8018
+
+Old situation:
+
+Device     Boot Start      End  Sectors Size Id Type
+/dev/vda1  *     2048 10483711 10481664   5G 83 Linux
+
+/dev/vda1: 
+New situation:
+
+Device     Boot Start      End  Sectors Size Id Type
+/dev/vda1  *     2048 31457279 31455232  15G 83 Linux
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+/dev/vda1: 77727/327680 files (0.2% non-contiguous), 564518/1310208 blocks
+Resizing the filesystem on /dev/vda1 to 3931904 (4k) blocks.
+The filesystem on /dev/vda1 is now 3931904 (4k) blocks long.
+
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+/dev/vda1: 77727/983040 files (0.2% non-contiguous), 606920/3931904 blocks
+Sat Jun  8 11:16:31 UTC 2024
