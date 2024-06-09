@@ -13,7 +13,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import service.TransferRoute;
+import service.CurrencyRouteResolver;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class ExchangeServlet extends HttpServlet {
         String baseCurrencyCode = req.getParameter("from");
         String targetCurrencyCode = req.getParameter("to");
         String amountStr = req.getParameter("amount");
-        double amountDouble = Double.parseDouble(amountStr);
+        BigDecimal amountDouble = new BigDecimal(amountStr);
         CurrencyExchangeDto currencyExchangeDto =
                 new CurrencyExchangeDto(baseCurrencyCode, targetCurrencyCode, amountDouble);
         ValidationUtil.validateCurrencyExchangeDto(currencyExchangeDto);
@@ -46,12 +46,12 @@ public class ExchangeServlet extends HttpServlet {
         mapper.writeValue(resp.getWriter(), currencyExchange);
     }
 
-    private CurrencyExchange getCurrencyExchange(String baseCode, String targetCode, double amount) {
+    private CurrencyExchange getCurrencyExchange(String baseCode, String targetCode, BigDecimal amount) {
         Currency baseCurrency = currencyDao.findByCode(baseCode).orElseThrow();
         Currency targetCurrency = currencyDao.findByCode(targetCode).orElseThrow();
 
-        TransferRoute transferRoute = new TransferRoute(baseCode, targetCode);
-        BigDecimal rate = transferRoute.getRate();
+        CurrencyRouteResolver currencyRouteResolver = new CurrencyRouteResolver(baseCode, targetCode);
+        BigDecimal rate = currencyRouteResolver.getRate();
         return new CurrencyExchange(baseCurrency, targetCurrency, rate, amount);
     }
 }

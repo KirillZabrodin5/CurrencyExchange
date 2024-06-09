@@ -25,8 +25,8 @@ public class ValidationUtil {
     public static void validateCurrencyExchangeDto(CurrencyExchangeDto currencyExchangeDto) {
         validateCurrencyCode(currencyExchangeDto.getBaseCurrencyCode());
         validateCurrencyCode(currencyExchangeDto.getTargetCurrencyCode());
-        if (currencyExchangeDto.getAmount() <= 0) {
-            throw new InvalidParameterException("Amount must be greater than 0");
+        if (currencyExchangeDto.getAmount() == null) {
+            throw new InvalidParameterException("Amount must be greater than null");
         }
     }
 

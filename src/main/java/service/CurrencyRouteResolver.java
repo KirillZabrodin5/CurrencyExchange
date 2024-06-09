@@ -15,14 +15,14 @@ import java.math.BigDecimal;
  * Основой метод класса - translate, с помощью него
  * определяем маршрут перевода и возвращаем rate
  */
-public class TransferRoute { //название говно, подумать еще
+public class CurrencyRouteResolver {
     private final Long idStartCurrency;
     private final Long idEndCurrency;
     private final JdbcCurrencyDao currencyDao = new JdbcCurrencyDao();
     private final JdbcExchangeRateDao exchangeRateDao = new JdbcExchangeRateDao();
     private final static String TRANSIT_CODE_CURRENCY = "USD";
 
-    public TransferRoute(String startCodeCurrency, String endCodeCurrency)
+    public CurrencyRouteResolver(String startCodeCurrency, String endCodeCurrency)
             throws NotFoundException, DatabaseUnavailableException {
         idStartCurrency = currencyDao
                 .findByCode(startCodeCurrency)
