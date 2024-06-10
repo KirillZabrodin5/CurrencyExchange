@@ -3,7 +3,7 @@ package dao;
 import Exceptions.DatabaseUnavailableException;
 import Exceptions.EntityExistsException;
 import Exceptions.NotFoundException;
-import entities.Currency;
+import entity.Currency;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
 import utils.ConnectionManager;
@@ -100,13 +100,13 @@ public class JdbcCurrencyDao implements CurrencyDao {
             ResultSet rs = statement.executeQuery();
             Currency currency = getCurrencyFromResultSet(rs);
             return Optional.of(currency);
-        } catch (SQLException ex) {
-            if (ex instanceof SQLiteException sqLiteException) {
-                if (sqLiteException.getResultCode().code ==
-                        SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code) {
-                    throw new EntityExistsException("Currency already exists");
-                }
+        } catch (SQLiteException sqLiteException) {
+            if (sqLiteException.getResultCode().code ==
+                    SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code) {
+                throw new EntityExistsException("Currency already exists");
             }
+            return Optional.empty();
+        } catch (SQLException ex) {
             throw new DatabaseUnavailableException("Database unavailable");
         }
     }

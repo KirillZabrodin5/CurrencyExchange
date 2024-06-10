@@ -1,4 +1,4 @@
-package entities;
+package dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class AnswerError {
+public class ErrorResponseDto {
     private String message;
 }

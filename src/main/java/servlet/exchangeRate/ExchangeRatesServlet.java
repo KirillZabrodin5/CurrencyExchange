@@ -1,4 +1,4 @@
-package servlet;
+package servlet.exchangeRate;
 
 import Exceptions.InvalidParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,8 +8,8 @@ import dao.ExchangeRateDao;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
 import dto.ExchangeRateDto;
-import entities.Currency;
-import entities.ExchangeRate;
+import entity.Currency;
+import entity.ExchangeRate;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -43,7 +43,7 @@ public class ExchangeRatesServlet extends HttpServlet {
                 .stream()
                 .map(CONVERTER_UTIL::exchangeRateToDto)
                 .toList();
-        response.setStatus(HttpServletResponse.SC_OK);
+
         mapper.writeValue(response.getWriter(), exchangeRates);
     }
 
@@ -55,15 +55,16 @@ public class ExchangeRatesServlet extends HttpServlet {
         ValidationUtil.validateCurrencyCode(baseCurrencyCode);
         ValidationUtil.validateCurrencyCode(targetCurrencyCode);
         if (rate == null) {
-            throw new InvalidParameterException("rate is null");
+            throw new InvalidParameterException("rate is not valid");
         }
         CurrencyDao currencyDao = new JdbcCurrencyDao();
 
         Currency baseCurrency = currencyDao.findByCode(baseCurrencyCode).orElseThrow();
         Currency targetCurrency = currencyDao.findByCode(targetCurrencyCode).orElseThrow();
 
-        ExchangeRateDto exchangeRateDto = new ExchangeRateDto(baseCurrency,
-                targetCurrency, new BigDecimal(rate));
+        ExchangeRateDto exchangeRateDto = new ExchangeRateDto(CONVERTER_UTIL.currencyToDto(baseCurrency),
+                CONVERTER_UTIL.currencyToDto(targetCurrency), new BigDecimal(rate));
+
         ExchangeRate exchangeRate = exchangeRateDao
                 .save(CONVERTER_UTIL.dtoToExchangeRate(exchangeRateDto))
                 .orElseThrow();

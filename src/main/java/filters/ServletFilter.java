@@ -1,11 +1,11 @@
-package servlet;
+package filters;
 
 import Exceptions.DatabaseUnavailableException;
 import Exceptions.EntityExistsException;
 import Exceptions.InvalidParameterException;
 import Exceptions.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import entities.AnswerError;
+import dto.ErrorResponseDto;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;
@@ -26,6 +26,7 @@ public class ServletFilter extends HttpFilter {
         response.setContentType("application/json");
 
         try {
+            response.setStatus(HttpServletResponse.SC_OK);
             super.doFilter(request, response, chain);
         } catch (InvalidParameterException e) {
             writeExceptionToResponse(response, HttpServletResponse.SC_BAD_REQUEST, e);
@@ -40,7 +41,7 @@ public class ServletFilter extends HttpFilter {
 
     private void writeExceptionToResponse(HttpServletResponse response, int codeException, Exception exception) throws IOException {
         response.setStatus(codeException);
-        AnswerError answerError = new AnswerError(exception.getMessage());
-        mapper.writeValue(response.getWriter(), answerError);
+        ErrorResponseDto errorResponseDto = new ErrorResponseDto(exception.getMessage());
+        mapper.writeValue(response.getWriter(), errorResponseDto);
     }
 }

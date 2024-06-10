@@ -1,6 +1,5 @@
 package dto;
 
-import entities.Currency;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,12 +12,12 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExchangeRateDto {
-    Long id = 0L;
-    private Currency baseCurrency;
-    private Currency targetCurrency;
+    private Long id = null;
+    private CurrencyDto baseCurrency;
+    private CurrencyDto targetCurrency;
     private BigDecimal rate;
 
-    public ExchangeRateDto(Currency baseCurrency, Currency targetCurrency, BigDecimal rate) {
+    public ExchangeRateDto(CurrencyDto baseCurrency, CurrencyDto targetCurrency, BigDecimal rate) {
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
         this.rate = rate;

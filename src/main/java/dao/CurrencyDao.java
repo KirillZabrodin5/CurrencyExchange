@@ -1,7 +1,6 @@
 package dao;
 
-import dto.CurrencyDto;
-import entities.Currency;
+import entity.Currency;
 
 import java.util.Optional;
 

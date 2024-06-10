@@ -1,6 +1,6 @@
 package dao;
 
-import entities.ExchangeRate;
+import entity.ExchangeRate;
 
 import java.util.Optional;
 

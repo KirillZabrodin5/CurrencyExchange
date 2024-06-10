@@ -2,8 +2,8 @@ package utils;
 
 import dto.CurrencyDto;
 import dto.ExchangeRateDto;
-import entities.Currency;
-import entities.ExchangeRate;
+import entity.Currency;
+import entity.ExchangeRate;
 import org.modelmapper.ModelMapper;
 
 public class ConverterUtil {

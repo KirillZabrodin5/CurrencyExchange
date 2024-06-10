@@ -1,8 +1,8 @@
 package utils;
 
 import Exceptions.InvalidParameterException;
+import Exceptions.NotFoundException;
 import dto.CurrencyDto;
-import dto.CurrencyExchangeDto;
 
 import java.util.ArrayList;
 import java.util.Currency;
@@ -22,14 +22,6 @@ public class ValidationUtil {
         }
     }
 
-    public static void validateCurrencyExchangeDto(CurrencyExchangeDto currencyExchangeDto) {
-        validateCurrencyCode(currencyExchangeDto.getBaseCurrencyCode());
-        validateCurrencyCode(currencyExchangeDto.getTargetCurrencyCode());
-        if (currencyExchangeDto.getAmount() == null) {
-            throw new InvalidParameterException("Amount must be greater than null");
-        }
-    }
-
     public static void validateCurrencyCode(String code) {
         if (code == null) {
             throw new InvalidParameterException("There is no currency code in the request");
@@ -46,7 +38,7 @@ public class ValidationUtil {
         }
 
         if (!codes.contains(code)) {
-            throw new InvalidParameterException("There is no currency with code " + code);
+            throw new NotFoundException("There is no currency with code " + code);
         }
     }
 }

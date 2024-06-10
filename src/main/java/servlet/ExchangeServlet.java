@@ -1,19 +1,21 @@
 package servlet;
 
+import Exceptions.InvalidParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dao.CurrencyDao;
 import dao.JdbcCurrencyDao;
+
 import dto.CurrencyExchangeDto;
-import entities.Currency;
-import entities.CurrencyExchange;
+import entity.Currency;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import service.CurrencyRouteResolver;
+import service.CurrencyExchangeService;
+import utils.ConverterUtil;
 import utils.ValidationUtil;
 
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.math.BigDecimal;
 public class ExchangeServlet extends HttpServlet {
     private final ObjectMapper mapper = new ObjectMapper();
     private final CurrencyDao currencyDao = new JdbcCurrencyDao();
+    private final CurrencyExchangeService currencyExchangeService = new CurrencyExchangeService();
+    private static final ConverterUtil CONVERTER_UTIL = new ConverterUtil();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -35,23 +39,27 @@ public class ExchangeServlet extends HttpServlet {
         String baseCurrencyCode = req.getParameter("from");
         String targetCurrencyCode = req.getParameter("to");
         String amountStr = req.getParameter("amount");
-        BigDecimal amountDouble = new BigDecimal(amountStr);
-        CurrencyExchangeDto currencyExchangeDto =
-                new CurrencyExchangeDto(baseCurrencyCode, targetCurrencyCode, amountDouble);
-        ValidationUtil.validateCurrencyExchangeDto(currencyExchangeDto);
 
-        CurrencyExchange currencyExchange = getCurrencyExchange(baseCurrencyCode, targetCurrencyCode, amountDouble);
+        ValidationUtil.validateCurrencyCode(baseCurrencyCode);
+        ValidationUtil.validateCurrencyCode(targetCurrencyCode);
 
-        resp.setStatus(HttpServletResponse.SC_OK);
-        mapper.writeValue(resp.getWriter(), currencyExchange);
-    }
+        if (amountStr == null) {
+            throw new InvalidParameterException("Amount is empty");
+        }
 
-    private CurrencyExchange getCurrencyExchange(String baseCode, String targetCode, BigDecimal amount) {
-        Currency baseCurrency = currencyDao.findByCode(baseCode).orElseThrow();
-        Currency targetCurrency = currencyDao.findByCode(targetCode).orElseThrow();
+        BigDecimal amountBigDecimal = new BigDecimal(amountStr);
 
-        CurrencyRouteResolver currencyRouteResolver = new CurrencyRouteResolver(baseCode, targetCode);
-        BigDecimal rate = currencyRouteResolver.getRate();
-        return new CurrencyExchange(baseCurrency, targetCurrency, rate, amount);
+        Currency baseCurrency = currencyDao.findByCode(baseCurrencyCode).orElseThrow();
+        Currency targetCurrency = currencyDao.findByCode(targetCurrencyCode).orElseThrow();
+
+        CurrencyExchangeDto currencyExchangeRequestDto = new CurrencyExchangeDto(
+                CONVERTER_UTIL.currencyToDto(baseCurrency),
+                CONVERTER_UTIL.currencyToDto(targetCurrency),
+                amountBigDecimal);
+
+        CurrencyExchangeDto currencyExchangeResponseDto = currencyExchangeService
+                .getCurrencyExchange(currencyExchangeRequestDto);
+
+        mapper.writeValue(resp.getWriter(), currencyExchangeResponseDto);
     }
 }

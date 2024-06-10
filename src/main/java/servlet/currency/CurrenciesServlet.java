@@ -1,11 +1,11 @@
-package servlet;
+package servlet.currency;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dao.CurrencyDao;
 import dao.JdbcCurrencyDao;
 import dto.CurrencyDto;
-import entities.Currency;
+import entity.Currency;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -38,7 +38,6 @@ public class CurrenciesServlet extends HttpServlet {
                 .map(CONVERTER_UTIL::currencyToDto)
                 .toList();
 
-        response.setStatus(HttpServletResponse.SC_OK);
         mapper.writeValue(response.getWriter(), currencies);
     }
 
