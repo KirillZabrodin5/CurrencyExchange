@@ -1,9 +1,9 @@
 package filters;
 
-import Exceptions.DatabaseUnavailableException;
-import Exceptions.EntityExistsException;
-import Exceptions.InvalidParameterException;
-import Exceptions.NotFoundException;
+import exception.DatabaseUnavailableException;
+import exception.EntityExistsException;
+import exception.InvalidParameterException;
+import exception.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.ErrorResponseDto;
 import jakarta.servlet.FilterChain;

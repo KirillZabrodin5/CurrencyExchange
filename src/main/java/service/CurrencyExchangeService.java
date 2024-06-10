@@ -1,6 +1,6 @@
 package service;
 
-import Exceptions.NotFoundException;
+import exception.NotFoundException;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
 import dto.CurrencyExchangeDto;

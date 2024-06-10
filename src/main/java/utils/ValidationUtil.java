@@ -1,7 +1,7 @@
 package utils;
 
-import Exceptions.InvalidParameterException;
-import Exceptions.NotFoundException;
+import exception.InvalidParameterException;
+import exception.NotFoundException;
 import dto.CurrencyDto;
 
 import java.util.ArrayList;

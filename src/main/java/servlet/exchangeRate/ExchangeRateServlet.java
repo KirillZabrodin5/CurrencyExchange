@@ -1,6 +1,6 @@
 package servlet.exchangeRate;
 
-import Exceptions.InvalidParameterException;
+import exception.InvalidParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dao.CurrencyDao;
 import dao.ExchangeRateDao;

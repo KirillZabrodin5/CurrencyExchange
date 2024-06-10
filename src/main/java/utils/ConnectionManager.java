@@ -1,6 +1,6 @@
 package utils;
 
-import Exceptions.DatabaseUnavailableException;
+import exception.DatabaseUnavailableException;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 

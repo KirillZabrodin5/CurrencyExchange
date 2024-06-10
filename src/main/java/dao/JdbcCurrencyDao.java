@@ -1,8 +1,8 @@
 package dao;
 
-import Exceptions.DatabaseUnavailableException;
-import Exceptions.EntityExistsException;
-import Exceptions.NotFoundException;
+import exception.DatabaseUnavailableException;
+import exception.EntityExistsException;
+import exception.NotFoundException;
 import entity.Currency;
 import org.sqlite.SQLiteErrorCode;
 import org.sqlite.SQLiteException;
