@@ -7,6 +7,7 @@ import dao.CurrencyDao;
 import dao.JdbcCurrencyDao;
 
 import dto.CurrencyExchangeDto;
+import dto.CurrencyExchangeRequestDto;
 import entity.Currency;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -52,7 +53,7 @@ public class ExchangeServlet extends HttpServlet {
         Currency baseCurrency = currencyDao.findByCode(baseCurrencyCode).orElseThrow();
         Currency targetCurrency = currencyDao.findByCode(targetCurrencyCode).orElseThrow();
 
-        CurrencyExchangeDto currencyExchangeRequestDto = new CurrencyExchangeDto(
+        CurrencyExchangeRequestDto currencyExchangeRequestDto = new CurrencyExchangeRequestDto(
                 CONVERTER_UTIL.currencyToDto(baseCurrency),
                 CONVERTER_UTIL.currencyToDto(targetCurrency),
                 amountBigDecimal);

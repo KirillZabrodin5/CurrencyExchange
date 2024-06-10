@@ -9,7 +9,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Set;
 
-public class ValidationUtil {
+public final class ValidationUtil {
     public static void validateCurrencyDto(CurrencyDto currencyDto) {
         validateCurrencyCode(currencyDto.getCode());
 

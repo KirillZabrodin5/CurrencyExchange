@@ -9,5 +9,4 @@ public interface CrudDao<T, ID> {
     Optional<T> findById(ID id);
 
     Optional<T> save(T entity);
-
 }

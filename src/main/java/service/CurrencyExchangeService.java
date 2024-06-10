@@ -4,6 +4,7 @@ import Exceptions.NotFoundException;
 import dao.JdbcCurrencyDao;
 import dao.JdbcExchangeRateDao;
 import dto.CurrencyExchangeDto;
+import dto.CurrencyExchangeRequestDto;
 import entity.Currency;
 import utils.ConverterUtil;
 
@@ -29,7 +30,7 @@ public class CurrencyExchangeService {
     public CurrencyExchangeService() {
     }
 
-    public CurrencyExchangeDto getCurrencyExchange(CurrencyExchangeDto currencyExchangeDto) {
+    public CurrencyExchangeDto getCurrencyExchange(CurrencyExchangeRequestDto currencyExchangeDto) {
         Currency baseCurrency = CONVERTER_UTIL.dtoToCurrency(currencyExchangeDto.getBaseCurrency());
         Currency targetCurrency = CONVERTER_UTIL.dtoToCurrency(currencyExchangeDto.getTargetCurrency());
 

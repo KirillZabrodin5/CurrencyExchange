@@ -3,7 +3,6 @@ package dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import entity.Currency;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,12 +16,6 @@ public class CurrencyExchangeDto {
     private BigDecimal rate;
     private BigDecimal amount;
     private BigDecimal convertedAmount;
-
-    public CurrencyExchangeDto(CurrencyDto baseCurrency, CurrencyDto targetCurrency, BigDecimal amount) {
-        this.baseCurrency = baseCurrency;
-        this.targetCurrency = targetCurrency;
-        this.amount = amount;
-    }
 
     public CurrencyExchangeDto(CurrencyDto baseCurrency, CurrencyDto targetCurrency,
                                BigDecimal rate, BigDecimal amount) {

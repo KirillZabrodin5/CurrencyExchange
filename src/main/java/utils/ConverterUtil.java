@@ -6,7 +6,7 @@ import entity.Currency;
 import entity.ExchangeRate;
 import org.modelmapper.ModelMapper;
 
-public class ConverterUtil {
+public final class ConverterUtil {
     private static final ModelMapper modelMapper = new ModelMapper();
 
     public ConverterUtil() {
