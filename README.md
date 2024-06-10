@@ -9,9 +9,9 @@ REST API для описания валют и обменных курсов. П
 Java - коллекции, ООП
 Maven
 Backend:
-### Java сервлеты
-### HTTP - GET и POST запросы, коды ответа, postman
-### REST API, JSON
+Java сервлеты
+HTTP - GET и POST запросы, коды ответа, postman
+REST API, JSON
 Базы данных - SQLite, JDBC, HikariCP
 Деплой - облачный хостинг, командная строка Linux, Tomcat
 
