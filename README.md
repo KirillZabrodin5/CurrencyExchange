@@ -18,31 +18,32 @@ REST API, JSON
 
 ## Использование приложения:
 
-- GET /currencies
+- **GET /currencies**
 - Получение списка валют.
 
-- GET /currency/EUR
+- **GET /currency/EUR**
 - Получение конкретной валюты.
 
-- POST /currencies
+- **POST /currencies**
 - Добавление новой валюты в базу. Данные передаются в теле запроса в виде полей формы (x-www-form-urlencoded). Поля формы - name, code, sign.
 
-- GET /exchangeRates
+- **GET /exchangeRates**
 - Получение списка всех обменных курсов.
 
-- GET /exchangeRate/USDRUB
+- **GET /exchangeRate/USDRUB**
 - Получение конкретного обменного курса. Валютная пара задаётся идущими подряд кодами валют в адресе запроса.
 
-- POST /exchangeRates
+- **POST /exchangeRates**
 - Добавление нового обменного курса в базу. Данные передаются в теле запроса в виде полей формы (x-www-form-urlencoded). Поля формы - baseCurrencyCode, targetCurrencyCode, rate.
 
-- PATCH /exchangeRate/USDRUB
+- **PATCH /exchangeRate/USDRUB**
 - Обновление существующего в базе обменного курса. Валютная пара задаётся идущими подряд кодами валют в адресе запроса. Данные передаются в теле запроса в виде полей формы (x-www-form-urlencoded). Единственное поле формы - rate.
 
-- GET /exchange?from=BASE_CURRENCY_CODE&to=TARGET_CURRENCY_CODE&amount=$AMOUNT
+- **GET /exchange?from=BASE_CURRENCY_CODE&to=TARGET_CURRENCY_CODE&amount=$AMOUNT**
 - Расчёт перевода определённого количества средств из одной валюты в другую. Пример запроса - GET /exchange?from=USD&to=AUD&amount=10.
 
-Получение курса для обмена может пройти по одному из трёх сценариев. Допустим, совершаем перевод из валюты A в валюту B:
+Получение курса для обмена может пройти по одному из трёх сценариев. 
+Допустим, совершаем перевод из валюты A в валюту B:
 В таблице ExchangeRates существует валютная пара AB - берём её курс В таблице ExchangeRates существует валютная пара BA - берем её курс, и считаем обратный, чтобы получить AB В таблице ExchangeRates существуют валютные пары USD-A и USD-B - вычисляем из этих курсов курс AB Остальные возможные сценарии, для упрощения, опустим.
 
 Для всех запросов, в случае ошибки, ответ может выглядеть так:
